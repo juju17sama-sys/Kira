@@ -16,6 +16,7 @@ import { GODS, type God, type GodId, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
 import { AmbientLayer } from './AmbientLayer';
 import { assetUrl } from '../utils/assets';
+import { sfxHover } from '../utils/sound';
 
 interface Props {
   statuses?: Partial<Record<God['id'], GodStatus>>;
@@ -226,7 +227,11 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
           >
             {/* Bouton clic / survol — desactive en mode edition */}
             <button
-              onMouseEnter={() => !editing && setHovered(god)}
+              onMouseEnter={() => {
+                if (editing) return;
+                setHovered(god);
+                sfxHover();
+              }}
               onMouseLeave={() => !editing && setHovered(null)}
               onClick={() => !editing && onSelect(god)}
               onMouseDown={(e) => editing && beginDrag(e, god, 'move')}

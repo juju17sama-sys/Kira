@@ -3,8 +3,10 @@
 // ║  S'ouvre sur clic du dieu. Esthétique parchemin/marbre, pas modal. ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { God } from '../data/gods';
+import { sfxChime } from '../utils/sound';
 
 interface Props {
   god: God | null;
@@ -52,6 +54,11 @@ const FAKE_TASKS: Record<string, { title: string; status: string }[]> = {
 };
 
 export function ScrollPanel({ god, onClose }: Props) {
+  // Tintement cristallin à l'ouverture du parchemin
+  useEffect(() => {
+    if (god) sfxChime();
+  }, [god]);
+
   return (
     <AnimatePresence>
       {god && (

@@ -8,12 +8,14 @@
 // ║   + ScrollPanel : parchemin contextuel d'action (sur les dieux)  ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { PanoramicHub } from './components/PanoramicHub';
 import { GodTerrace } from './components/GodTerrace';
 import { PandoreVault } from './components/PandoreVault';
 import { ScrollPanel } from './components/ScrollPanel';
+import { SoundToggle } from './components/SoundToggle';
+import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
 import type { God, GodId, GodStatus } from './data/gods';
 
 // Statuts de demo — a remplacer par un store connecte au pipeline reel.
@@ -38,14 +40,32 @@ export default function App() {
   const [scene, setScene] = useState<Scene>({ kind: 'hub' });
   const [panelGod, setPanelGod] = useState<God | null>(null);
 
+  // Démarrage du vent ambiant au 1er clic utilisateur (politique autoplay).
+  useEffect(() => {
+    const onFirstInteraction = () => {
+      startWind();
+      window.removeEventListener('click', onFirstInteraction);
+      window.removeEventListener('keydown', onFirstInteraction);
+    };
+    window.addEventListener('click', onFirstInteraction);
+    window.addEventListener('keydown', onFirstInteraction);
+    return () => {
+      stopWind();
+      window.removeEventListener('click', onFirstInteraction);
+      window.removeEventListener('keydown', onFirstInteraction);
+    };
+  }, []);
+
   // Route vers la bonne scène selon le dieu choisi.
   // Pandore => vault, sinon => terrace classique.
   const enterGod = (god: God) => {
+    sfxSelect();
     if (god.id === 'pandore') setScene({ kind: 'vault' });
     else setScene({ kind: 'terrace', god });
   };
 
   const backToHub = () => {
+    sfxBack();
     setPanelGod(null);
     setScene({ kind: 'hub' });
   };
@@ -74,6 +94,7 @@ export default function App() {
       </AnimatePresence>
 
       <ScrollPanel god={panelGod} onClose={() => setPanelGod(null)} />
+      <SoundToggle />
     </div>
   );
 }
