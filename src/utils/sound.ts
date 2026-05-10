@@ -58,55 +58,99 @@ export function isMuted() {
   return muted;
 }
 
-// ─── Vent ambiant : drone subtil, joué en boucle pendant que la scène est active
-let windNodes: { osc: OscillatorNode; gain: GainNode; lfo: OscillatorNode } | null = null;
+// ─── Vent ambiant : bruit rose filtré (vrai vent, pas un drone harmonique) ────
+//
+// Recette : bufferSource (bruit blanc bouclé) → biquad low-pass modulé par LFO
+// → gain global modulé par un 2e LFO (respiration). Le bruit est genere une
+// seule fois dans un AudioBuffer de 3 secondes et lu en boucle.
+let windNodes: {
+  src: AudioBufferSourceNode;
+  filter: BiquadFilterNode;
+  gain: GainNode;
+  lfoCutoff: OscillatorNode;
+  lfoAmp: OscillatorNode;
+} | null = null;
+
+function createNoiseBuffer(c: AudioContext, seconds: number): AudioBuffer {
+  const sampleRate = c.sampleRate;
+  const length = sampleRate * seconds;
+  const buf = c.createBuffer(1, length, sampleRate);
+  const data = buf.getChannelData(0);
+  // Approximation simple de bruit rose (Voss-McCartney simplifié)
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+  for (let i = 0; i < length; i++) {
+    const w = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179;
+    b1 = 0.99332 * b1 + w * 0.0750759;
+    b2 = 0.96900 * b2 + w * 0.1538520;
+    b3 = 0.86650 * b3 + w * 0.3104856;
+    b4 = 0.55000 * b4 + w * 0.5329522;
+    b5 = -0.7616 * b5 - w * 0.0168980;
+    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.115;
+    b6 = w * 0.115926;
+  }
+  return buf;
+}
 
 export function startWind() {
   const c = ensureCtx();
   if (!c || !masterGain || windNodes) return;
 
-  const osc = c.createOscillator();
-  osc.type = 'sawtooth';
-  osc.frequency.value = 55; // basse profonde
+  // Source : bruit rose en boucle
+  const src = c.createBufferSource();
+  src.buffer = createNoiseBuffer(c, 3);
+  src.loop = true;
 
+  // Filtre passe-bas : ne garde que les basses fréquences (souffle)
   const filter = c.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 220;
-  filter.Q.value = 0.6;
+  filter.type = 'lowpass';
+  filter.frequency.value = 380;
+  filter.Q.value = 0.7;
 
+  // LFO 1 : module la fréquence de coupure (vent qui forcit/faiblit en timbre)
+  const lfoCutoff = c.createOscillator();
+  lfoCutoff.frequency.value = 0.12;
+  const lfoCutoffGain = c.createGain();
+  lfoCutoffGain.gain.value = 120;
+  lfoCutoff.connect(lfoCutoffGain);
+  lfoCutoffGain.connect(filter.frequency);
+
+  // Gain final, démarrage en silence puis fade-in
   const gain = c.createGain();
-  gain.gain.value = 0.0;
+  gain.gain.value = 0;
 
-  // LFO pour faire respirer le vent
-  const lfo = c.createOscillator();
-  lfo.frequency.value = 0.08;
-  const lfoGain = c.createGain();
-  lfoGain.gain.value = 0.05;
-  lfo.connect(lfoGain);
-  lfoGain.connect(gain.gain);
+  // LFO 2 : module l'amplitude (respiration du vent)
+  const lfoAmp = c.createOscillator();
+  lfoAmp.frequency.value = 0.08;
+  const lfoAmpGain = c.createGain();
+  lfoAmpGain.gain.value = 0.025;
+  lfoAmp.connect(lfoAmpGain);
+  lfoAmpGain.connect(gain.gain);
 
-  osc.connect(filter);
+  src.connect(filter);
   filter.connect(gain);
   gain.connect(masterGain);
 
-  osc.start();
-  lfo.start();
+  src.start();
+  lfoCutoff.start();
+  lfoAmp.start();
 
-  // Fade in doux
-  gain.gain.linearRampToValueAtTime(0.07, c.currentTime + 4);
+  // Fade in tres doux (5s) — on tombe sur ~0.08 + variation LFO
+  gain.gain.linearRampToValueAtTime(0.08, c.currentTime + 5);
 
-  windNodes = { osc, gain, lfo };
+  windNodes = { src, filter, gain, lfoCutoff, lfoAmp };
 }
 
 export function stopWind() {
   if (!ctx || !windNodes) return;
-  const { osc, gain, lfo } = windNodes;
+  const { src, gain, lfoCutoff, lfoAmp } = windNodes;
   gain.gain.cancelScheduledValues(ctx.currentTime);
   gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
   setTimeout(() => {
     try {
-      osc.stop();
-      lfo.stop();
+      src.stop();
+      lfoCutoff.stop();
+      lfoAmp.stop();
     } catch {
       /* ignore */
     }
