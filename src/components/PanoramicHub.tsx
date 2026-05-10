@@ -351,9 +351,9 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
         </div>
       )}
 
-      {/* Aperçu du code (mode edition) */}
+      {/* Aperçu du code (mode edition) — haut gauche, sous la barre, ne masque rien sur la plateforme du bas */}
       {editing && (
-        <div className="absolute bottom-4 left-4 max-w-md max-h-48 overflow-auto px-3 py-2 bg-black/85 border border-yellow-300/40 backdrop-blur-md font-mono text-[10px] text-yellow-200 leading-relaxed z-50">
+        <div className="absolute top-20 left-4 max-w-md max-h-[60vh] overflow-auto px-3 py-2 bg-black/85 border border-yellow-300/40 backdrop-blur-md font-mono text-[10px] text-yellow-200 leading-relaxed z-50">
           <pre>{buildExport()}</pre>
         </div>
       )}

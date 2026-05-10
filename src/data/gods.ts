@@ -45,8 +45,8 @@ export const GODS: God[] = [
       'Cronos veille au-dessus de tous. Il ordonne le tempo du pipeline, surveille les retards, et arbitre les priorités. Quand Cronos parle, les autres dieux écoutent.',
     symbol: '⧗',
     palette: { primary: '#b8862b', accent: '#e9c97a', flame: '#a64dff' },
-    // Sommet — chibi sur trône doré, taille resserrée
-    hotspot: { x: 50, y: 11, w: 7, h: 10 },
+    // Sommet — calibré par Julien
+    hotspot: { x: 50.5, y: 12.2, w: 8, h: 12.5 },
     portraitSrc: '/olympe/cronos.png',
     defaultStatus: 'idle',
   },
@@ -59,8 +59,8 @@ export const GODS: God[] = [
       'Zeus scrute le ciel des tendances. Il identifie les courants viraux, les hashtags qui montent, les moments où frapper. Sa foudre désigne la cible.',
     symbol: '⚡',
     palette: { primary: '#3b6ed4', accent: '#9bc4ff', flame: '#5aa9ff' },
-    // Centre — Roi des Dieux, taille resserrée sur le chibi
-    hotspot: { x: 50, y: 38, w: 7, h: 10 },
+    // Centre — calibré par Julien
+    hotspot: { x: 49.9, y: 42.1, w: 7.5, h: 18.4 },
     portraitSrc: '/olympe/zeus.png',
     defaultStatus: 'idle',
   },
@@ -73,8 +73,8 @@ export const GODS: God[] = [
       'Poséidon façonne le flot. Il assemble, coupe, ordonne. Le rythme de la vague, c’est lui. Sans Poséidon, le clip ne respire pas.',
     symbol: '🔱',
     palette: { primary: '#1d6fa3', accent: '#7ec3e8', flame: '#3aa8d8' },
-    // Triade des frères — gauche, descendu sur sa terrasse
-    hotspot: { x: 24, y: 42, w: 7, h: 11 },
+    // Triade gauche — calibré par Julien
+    hotspot: { x: 21.7, y: 46.6, w: 8.7, h: 17.4 },
     portraitSrc: '/olympe/poseidon.png',
     defaultStatus: 'idle',
   },
@@ -87,8 +87,8 @@ export const GODS: God[] = [
       'Hadès descend dans les profondeurs des replays. Il dissèque les actions, repère les moments de bascule, les kills, les retournements. Rien ne lui échappe.',
     symbol: '☠',
     palette: { primary: '#4a1f78', accent: '#b990ff', flame: '#9d4dff' },
-    // Triade des frères — droite, symétrique de Poséidon
-    hotspot: { x: 76, y: 42, w: 7, h: 11 },
+    // Triade droite — calibré par Julien
+    hotspot: { x: 71, y: 46.7, w: 8.8, h: 15.9 },
     portraitSrc: '/olympe/hades.png',
     defaultStatus: 'idle',
   },
@@ -115,8 +115,8 @@ export const GODS: God[] = [
       'Aphrodite habille le clip. Elle compose la miniature, choisit les couleurs, place les visages. C’est elle qui fait cliquer.',
     symbol: '🌹',
     palette: { primary: '#d46ea3', accent: '#ffc4dc', flame: '#ff8dbf' },
-    // Plateforme centrale — gauche-centre
-    hotspot: { x: 38, y: 86, w: 6, h: 9 },
+    // Plateforme centrale gauche — calibré par Julien
+    hotspot: { x: 36.8, y: 82.3, w: 8.4, h: 16.3 },
     portraitSrc: '/olympe/aphrodite.png',
     defaultStatus: 'idle',
   },
@@ -129,8 +129,8 @@ export const GODS: God[] = [
       'La Boîte garde tout. Chaque clip produit, chaque erreur, chaque succès, chaque leçon. Quand un dieu doute, il consulte Pandore.',
     symbol: '⚱',
     palette: { primary: '#6b2dab', accent: '#c690ff', flame: '#a64dff' },
-    // Centre exact — la Boîte trône au cœur du cercle (déjà validé OK)
-    hotspot: { x: 50, y: 82, w: 7, h: 11 },
+    // Centre du cercle — calibré par Julien
+    hotspot: { x: 49.1, y: 80.8, w: 8.8, h: 13.5 },
     portraitSrc: '/olympe/pandore.png',
     defaultStatus: 'idle',
   },
@@ -143,8 +143,8 @@ export const GODS: God[] = [
       'Athéna inspecte chaque clip avant publication. Cohérence du récit, qualité technique, conformité aux règles. Rien ne quitte l’Olympe sans son sceau.',
     symbol: '🦉',
     palette: { primary: '#7a4dc7', accent: '#c5a3ff', flame: '#a64dff' },
-    // Plateforme centrale — droite-centre (symétrique d'Aphrodite)
-    hotspot: { x: 62, y: 86, w: 6, h: 9 },
+    // Plateforme centrale droite — calibré par Julien
+    hotspot: { x: 61.4, y: 81.6, w: 7.1, h: 17.8 },
     portraitSrc: '/olympe/athena.png',
     defaultStatus: 'idle',
   },
@@ -157,8 +157,8 @@ export const GODS: God[] = [
       'Hermès trouve les mots. Le titre qui retient, le hook qui accroche, la description qui convertit. Il écrit pour que ça parle.',
     symbol: '☤',
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
-    // Plateforme centrale — extrémité droite (symétrique d'Apollon)
-    hotspot: { x: 70, y: 84, w: 6, h: 9 },
+    // Extrémité droite — calibré par Julien
+    hotspot: { x: 73.1, y: 85.1, w: 6.7, h: 15.6 },
     portraitSrc: '/olympe/hermes.png',
     defaultStatus: 'idle',
   },
