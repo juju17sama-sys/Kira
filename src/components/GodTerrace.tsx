@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import type { God } from '../data/gods';
 import { AmbientLayer } from './AmbientLayer';
+import { assetUrl } from '../utils/assets';
 
 interface Props {
   god: God;
@@ -59,7 +60,7 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
         style={{ x: bgX, y: bgY }}
       >
         <motion.img
-          src={god.portraitSrc}
+          src={assetUrl(god.portraitSrc)}
           alt={god.name}
           className="absolute inset-0 w-full h-full object-cover select-none cursor-pointer"
           draggable={false}

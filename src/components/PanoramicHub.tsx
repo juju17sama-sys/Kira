@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { GODS, type God, type GodId, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
 import { AmbientLayer } from './AmbientLayer';
+import { assetUrl } from '../utils/assets';
 
 interface Props {
   statuses?: Partial<Record<God['id'], GodStatus>>;
@@ -189,7 +190,7 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
         transition={{ duration: 1.4, ease: 'easeOut' }}
       >
         <motion.img
-          src="/olympe/mont-olympe.png"
+          src={assetUrl('olympe/mont-olympe.png')}
           alt="Mont Olympe"
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           draggable={false}
