@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GODS, type God, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
+import { AmbientLayer } from './AmbientLayer';
 
 interface Props {
   // Statut courant de chaque dieu (pilote depuis le pipeline reel)
@@ -19,16 +20,26 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Image de fond panoramique — couvre l'ecran */}
-      <motion.img
-        src="/olympe/mont-olympe.png"
-        alt="Mont Olympe"
-        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+      {/* ═══ Image de fond panoramique avec respiration de scene ═══ */}
+      {/* Apparition initiale + respiration ambiante (scale 1.000 -> 1.006) */}
+      <motion.div
+        className="absolute inset-0"
         initial={{ scale: 1.05, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.4, ease: 'easeOut' }}
-        draggable={false}
-      />
+      >
+        <motion.img
+          src="/olympe/mont-olympe.png"
+          alt="Mont Olympe"
+          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+          draggable={false}
+          animate={{ scale: [1, 1.006, 1], y: [0, -2, 0] }}
+          transition={{ duration: 8, ease: 'easeInOut', repeat: Infinity }}
+        />
+      </motion.div>
+
+      {/* ═══ Couche ambiante : etincelles dorees + brume + rayons ═══ */}
+      <AmbientLayer sparkCount={14} intensity={0.9} />
 
       {/* Vignette douce pour ancrer la lecture */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/10 via-transparent to-black/40" />
@@ -73,14 +84,25 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
               </div>
             )}
 
-            {/* Indicateur "travaille" — flamme qui pulse subtilement */}
+            {/* Indicateur "travaille" — flamme qui pulse au pied du dieu */}
             {status === 'working' && (
-              <motion.div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
-                style={{ background: god.palette.flame, filter: 'blur(2px)' }}
-                animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.3, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
-              />
+              <>
+                <motion.div
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
+                  style={{ background: god.palette.flame, filter: 'blur(2px)' }}
+                  animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.4, 1] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                {/* Aura douce — respiration coloree autour du dieu */}
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    background: `radial-gradient(circle, ${god.palette.flame}33 0%, transparent 65%)`,
+                  }}
+                  animate={{ opacity: [0.25, 0.55, 0.25], scale: [0.9, 1.05, 0.9] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </>
             )}
           </button>
         );
