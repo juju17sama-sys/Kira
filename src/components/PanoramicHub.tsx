@@ -4,7 +4,7 @@
 // ╚══════════════════════════════════════════════════════════════════╝
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { GODS, type God, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
 
@@ -86,38 +86,9 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
         );
       })}
 
-      {/* Cartouche de nom au survol — bas-centre, discret */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            key={hovered.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.25 }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
-          >
-            <div className="px-8 py-3 bg-black/55 backdrop-blur-sm border border-gold/40 rounded-sm text-center">
-              <div className="font-serif text-2xl tracking-[0.3em] text-gold-light">
-                {hovered.name.toUpperCase()}
-              </div>
-              <div className="font-body italic text-marble/80 text-sm mt-1">
-                {hovered.title}
-              </div>
-              <div className="font-body text-gold/70 text-xs mt-1 tracking-wider">
-                {hovered.role}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Titre cockpit en haut, tres discret */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 pointer-events-none">
-        <div className="font-serif text-gold-light/70 text-xs tracking-[0.5em]">
-          MONT OLYMPE — CENTRE DE COMMANDEMENT
-        </div>
-      </div>
+      {/* Aucun cartouche au survol et aucun titre en haut :       */}
+      {/* les noms sont deja graves dans la carte panoramique.     */}
+      {/* L'immersion prime — la carte parle d'elle-meme.          */}
     </div>
   );
 }
