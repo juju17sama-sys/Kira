@@ -16,20 +16,8 @@ import { PandoreVault } from './components/PandoreVault';
 import { ScrollPanel } from './components/ScrollPanel';
 import { SoundToggle } from './components/SoundToggle';
 import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
-import type { God, GodId, GodStatus } from './data/gods';
-
-// Statuts de demo — a remplacer par un store connecte au pipeline reel.
-const DEMO_STATUSES: Partial<Record<GodId, GodStatus>> = {
-  cronos: 'working',
-  zeus: 'working',
-  poseidon: 'idle',
-  hades: 'working',
-  apollon: 'idle',
-  aphrodite: 'working',
-  athena: 'blocked',
-  hermes: 'idle',
-  pandore: 'idle',
-};
+import { usePipelineState } from './pipeline/usePipeline';
+import type { God } from './data/gods';
 
 type Scene =
   | { kind: 'hub' }
@@ -39,6 +27,9 @@ type Scene =
 export default function App() {
   const [scene, setScene] = useState<Scene>({ kind: 'hub' });
   const [panelGod, setPanelGod] = useState<God | null>(null);
+
+  // État vivant du pipeline — mocké pour l'instant, vrai backend plus tard
+  const pipeline = usePipelineState();
 
   // Démarrage du vent ambiant au 1er clic utilisateur (politique autoplay).
   useEffect(() => {
@@ -76,7 +67,7 @@ export default function App() {
         {scene.kind === 'hub' && (
           <PanoramicHub
             key="hub"
-            statuses={DEMO_STATUSES}
+            statuses={pipeline.godStatuses}
             onSelect={enterGod}
           />
         )}

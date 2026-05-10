@@ -7,50 +7,21 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { God } from '../data/gods';
 import { sfxChime } from '../utils/sound';
+import { useGodTasks } from '../pipeline/usePipeline';
+import type { PipelineTask } from '../pipeline/types';
 
 interface Props {
   god: God | null;
   onClose: () => void;
 }
 
-// Faux contenu pipeline pour la demo — sera connecte au vrai pipeline plus tard.
-const FAKE_TASKS: Record<string, { title: string; status: string }[]> = {
-  cronos: [
-    { title: 'Orchestration du clip #042', status: 'En cours' },
-    { title: 'Synchronisation des dieux', status: 'Veille' },
-  ],
-  zeus: [
-    { title: 'Analyse tendances TikTok 24h', status: 'En cours' },
-    { title: 'Veille hashtags MLBB', status: 'Termine' },
-  ],
-  poseidon: [
-    { title: 'Montage clip #041', status: 'Termine' },
-    { title: 'Pre-cut clip #042', status: 'En attente' },
-  ],
-  hades: [
-    { title: 'Analyse replay match #128', status: 'En cours' },
-    { title: 'Detection moments cles', status: 'En cours' },
-  ],
-  apollon: [
-    { title: 'Selection BGM lo-fi', status: 'En cours' },
-    { title: 'Sync audio clip #041', status: 'Termine' },
-  ],
-  aphrodite: [
-    { title: 'Miniature clip #041', status: 'Termine' },
-    { title: 'Brouillon miniature #042', status: 'En cours' },
-  ],
-  athena: [
-    { title: 'Validation qualite clip #041', status: 'Termine' },
-    { title: 'Audit pipeline hebdo', status: 'En attente' },
-  ],
-  hermes: [
-    { title: 'Hook clip #041', status: 'Termine' },
-    { title: 'Description + tags #042', status: 'En cours' },
-  ],
-  pandore: [
-    { title: '3 clips archives ce mois', status: 'Memoire' },
-    { title: '12 lecons consignees', status: 'Memoire' },
-  ],
+// Statut humain affiché sur le parchemin (traduction depuis l'état pipeline)
+const TASK_STATUS_LABELS: Record<PipelineTask['status'], string> = {
+  queued: 'En attente',
+  running: 'En cours',
+  done: 'Terminé',
+  failed: 'Échec',
+  blocked: 'Bloqué',
 };
 
 export function ScrollPanel({ god, onClose }: Props) {
@@ -58,6 +29,9 @@ export function ScrollPanel({ god, onClose }: Props) {
   useEffect(() => {
     if (god) sfxChime();
   }, [god]);
+
+  // Tâches réelles du dieu courant (via le pipeline)
+  const tasks = useGodTasks(god?.id ?? 'cronos');
 
   return (
     <AnimatePresence>
@@ -124,22 +98,42 @@ export function ScrollPanel({ god, onClose }: Props) {
                 </p>
               </div>
 
-              {/* Liste des taches */}
+              {/* Liste des taches — connectee au pipeline reel */}
               <div className="px-10 pb-6">
                 <div className="font-serif text-xs tracking-[0.3em] text-ink/60 mb-3">
                   TÂCHES EN COURS
                 </div>
                 <div className="space-y-2">
-                  {(FAKE_TASKS[god.id] ?? []).map((t, i) => (
+                  {tasks.length === 0 && (
+                    <div className="py-2 px-3 font-body italic text-ink/50">
+                      — aucune tâche assignée pour l'instant —
+                    </div>
+                  )}
+                  {tasks.map((t) => (
                     <div
-                      key={i}
-                      className="flex items-center justify-between py-2 px-3 border-l-2 hover:bg-gold/10 transition-colors"
+                      key={t.id}
+                      className="py-2 px-3 border-l-2 hover:bg-gold/10 transition-colors"
                       style={{ borderColor: god.palette.primary }}
                     >
-                      <span className="font-body text-ink">{t.title}</span>
-                      <span className="font-serif text-[10px] tracking-[0.2em] text-ink/60">
-                        {t.status.toUpperCase()}
-                      </span>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-body text-ink">{t.title}</span>
+                        <span
+                          className="font-serif text-[10px] tracking-[0.2em] whitespace-nowrap"
+                          style={{
+                            color:
+                              t.status === 'blocked' || t.status === 'failed'
+                                ? '#a32d2d'
+                                : 'rgba(26,20,12,0.65)',
+                          }}
+                        >
+                          {TASK_STATUS_LABELS[t.status].toUpperCase()}
+                        </span>
+                      </div>
+                      {t.blockReason && (
+                        <div className="mt-1 font-body italic text-[13px] text-red-900/80">
+                          ⚠ {t.blockReason}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
