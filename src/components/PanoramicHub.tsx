@@ -3,7 +3,7 @@
 // ║  Le decor est l'interface. Pas de cartes, pas de panneaux fixes. ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GODS, type God, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
@@ -17,6 +17,21 @@ interface Props {
 
 export function PanoramicHub({ statuses = {}, onSelect }: Props) {
   const [hovered, setHovered] = useState<God | null>(null);
+
+  // ═══ Mode debug : touche D pour afficher/masquer les hotspots ═══
+  // Active aussi via ?debug dans l'URL.
+  const [debug, setDebug] = useState(
+    () => typeof window !== 'undefined' && window.location.search.includes('debug'),
+  );
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        setDebug((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
@@ -84,6 +99,15 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
               </div>
             )}
 
+            {/* ═══ Mode debug : rectangle dore + label nom ═══ */}
+            {debug && (
+              <div className="absolute inset-0 border-2 border-yellow-300/80 bg-yellow-300/15 pointer-events-none">
+                <div className="absolute -top-5 left-0 px-1.5 py-0.5 bg-yellow-300 text-black font-serif text-[10px] tracking-[0.15em] whitespace-nowrap">
+                  {god.name.toUpperCase()} · {god.hotspot.x},{god.hotspot.y}
+                </div>
+              </div>
+            )}
+
             {/* Indicateur "travaille" — flamme qui pulse au pied du dieu */}
             {status === 'working' && (
               <>
@@ -111,6 +135,13 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
       {/* Aucun cartouche au survol et aucun titre en haut :       */}
       {/* les noms sont deja graves dans la carte panoramique.     */}
       {/* L'immersion prime — la carte parle d'elle-meme.          */}
+
+      {/* ═══ Indicateur mode debug — coin bas droit ═══ */}
+      {debug && (
+        <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-yellow-300/90 text-black font-serif text-[10px] tracking-[0.2em] pointer-events-none">
+          MODE CALIBRATION · TOUCHE D POUR MASQUER
+        </div>
+      )}
     </div>
   );
 }
