@@ -98,7 +98,7 @@ export const GODS: God[] = [
     symbol: '🎵',
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
     // Calé sur la plateforme circulaire centrale — extrémité gauche du cercle
-    hotspot: { x: 37, y: 80, w: 7, h: 12 },
+    hotspot: { x: 32, y: 80, w: 7, h: 12 },
     portraitSrc: '/olympe/apollon.png',
     defaultStatus: 'idle',
   },
@@ -112,7 +112,7 @@ export const GODS: God[] = [
     symbol: '🌹',
     palette: { primary: '#d46ea3', accent: '#ffc4dc', flame: '#ff8dbf' },
     // Plateforme centrale — gauche-centre, légèrement plus bas (en avant du cercle)
-    hotspot: { x: 44, y: 82, w: 7, h: 12 },
+    hotspot: { x: 41, y: 82, w: 7, h: 12 },
     portraitSrc: '/olympe/aphrodite.png',
     defaultStatus: 'idle',
   },
@@ -140,7 +140,7 @@ export const GODS: God[] = [
     symbol: '🦉',
     palette: { primary: '#7a4dc7', accent: '#c5a3ff', flame: '#a64dff' },
     // Plateforme centrale — droite-centre, en avant du cercle (symétrique d'Aphrodite)
-    hotspot: { x: 56, y: 82, w: 7, h: 12 },
+    hotspot: { x: 59, y: 82, w: 7, h: 12 },
     portraitSrc: '/olympe/athena.png',
     defaultStatus: 'idle',
   },
@@ -154,7 +154,7 @@ export const GODS: God[] = [
     symbol: '☤',
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
     // Plateforme centrale — extrémité droite du cercle (symétrique d'Apollon)
-    hotspot: { x: 63, y: 80, w: 7, h: 12 },
+    hotspot: { x: 68, y: 80, w: 7, h: 12 },
     portraitSrc: '/olympe/hermes.png',
     defaultStatus: 'idle',
   },
