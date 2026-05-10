@@ -101,8 +101,8 @@ export const GODS: God[] = [
       'Apollon accorde la lyre. Il choisit la musique, synchronise les beats avec les coups, fait vibrer l’oreille. Sans Apollon, le clip est muet d’âme.',
     symbol: '🎵',
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
-    // Plateforme circulaire — extrémité gauche
-    hotspot: { x: 29, y: 84, w: 6, h: 9 },
+    // Extrémité gauche — calibré par Julien
+    hotspot: { x: 24.6, y: 83.5, w: 6.6, h: 14.2 },
     portraitSrc: '/olympe/apollon.png',
     defaultStatus: 'idle',
   },
