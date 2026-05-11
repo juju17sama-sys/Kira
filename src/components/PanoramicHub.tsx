@@ -192,7 +192,7 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
         transition={{ duration: 1.4, ease: 'easeOut' }}
       >
         <motion.img
-          src={assetUrl('olympe/mont-olympe.png')}
+          src={assetUrl('olympe/mont-olympe.webp')}
           alt="Mont Olympe"
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           draggable={false}

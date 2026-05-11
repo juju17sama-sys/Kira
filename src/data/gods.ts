@@ -29,7 +29,7 @@ export interface God {
     flame: string;
   };
   // Position relative sur la carte panoramique (en %)
-  // Calibré sur mont-olympe.png — à ajuster finement après affichage
+  // Calibré sur mont-olympe.webp — à ajuster finement après affichage
   hotspot: { x: number; y: number; w: number; h: number };
   portraitSrc: string;      // image plein corps de la terrasse
   defaultStatus: GodStatus;
@@ -47,7 +47,7 @@ export const GODS: God[] = [
     palette: { primary: '#b8862b', accent: '#e9c97a', flame: '#a64dff' },
     // Sommet — calibré par Julien
     hotspot: { x: 50.5, y: 12.2, w: 8, h: 12.5 },
-    portraitSrc: '/olympe/cronos.png',
+    portraitSrc: '/olympe/cronos.webp',
     defaultStatus: 'idle',
   },
   {
@@ -61,7 +61,7 @@ export const GODS: God[] = [
     palette: { primary: '#3b6ed4', accent: '#9bc4ff', flame: '#5aa9ff' },
     // Centre — calibré par Julien
     hotspot: { x: 49.9, y: 42.1, w: 7.5, h: 18.4 },
-    portraitSrc: '/olympe/zeus.png',
+    portraitSrc: '/olympe/zeus.webp',
     defaultStatus: 'idle',
   },
   {
@@ -75,7 +75,7 @@ export const GODS: God[] = [
     palette: { primary: '#1d6fa3', accent: '#7ec3e8', flame: '#3aa8d8' },
     // Triade gauche — calibré par Julien
     hotspot: { x: 21.7, y: 46.6, w: 8.7, h: 17.4 },
-    portraitSrc: '/olympe/poseidon.png',
+    portraitSrc: '/olympe/poseidon.webp',
     defaultStatus: 'idle',
   },
   {
@@ -89,7 +89,7 @@ export const GODS: God[] = [
     palette: { primary: '#4a1f78', accent: '#b990ff', flame: '#9d4dff' },
     // Triade droite — calibré par Julien
     hotspot: { x: 71, y: 46.7, w: 8.8, h: 15.9 },
-    portraitSrc: '/olympe/hades.png',
+    portraitSrc: '/olympe/hades.webp',
     defaultStatus: 'idle',
   },
   {
@@ -103,7 +103,7 @@ export const GODS: God[] = [
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
     // Extrémité gauche — calibré par Julien
     hotspot: { x: 24.6, y: 83.5, w: 6.6, h: 14.2 },
-    portraitSrc: '/olympe/apollon.png',
+    portraitSrc: '/olympe/apollon.webp',
     defaultStatus: 'idle',
   },
   {
@@ -117,7 +117,7 @@ export const GODS: God[] = [
     palette: { primary: '#d46ea3', accent: '#ffc4dc', flame: '#ff8dbf' },
     // Plateforme centrale gauche — calibré par Julien
     hotspot: { x: 36.8, y: 82.3, w: 8.4, h: 16.3 },
-    portraitSrc: '/olympe/aphrodite.png',
+    portraitSrc: '/olympe/aphrodite.webp',
     defaultStatus: 'idle',
   },
   {
@@ -131,7 +131,7 @@ export const GODS: God[] = [
     palette: { primary: '#6b2dab', accent: '#c690ff', flame: '#a64dff' },
     // Centre du cercle — calibré par Julien
     hotspot: { x: 49.1, y: 80.8, w: 8.8, h: 13.5 },
-    portraitSrc: '/olympe/pandore.png',
+    portraitSrc: '/olympe/pandore.webp',
     defaultStatus: 'idle',
   },
   {
@@ -145,7 +145,7 @@ export const GODS: God[] = [
     palette: { primary: '#7a4dc7', accent: '#c5a3ff', flame: '#a64dff' },
     // Plateforme centrale droite — calibré par Julien
     hotspot: { x: 61.4, y: 81.6, w: 7.1, h: 17.8 },
-    portraitSrc: '/olympe/athena.png',
+    portraitSrc: '/olympe/athena.webp',
     defaultStatus: 'idle',
   },
   {
@@ -159,7 +159,7 @@ export const GODS: God[] = [
     palette: { primary: '#d4a73b', accent: '#ffe8a3', flame: '#ffc94a' },
     // Extrémité droite — calibré par Julien
     hotspot: { x: 73.1, y: 85.1, w: 6.7, h: 15.6 },
-    portraitSrc: '/olympe/hermes.png',
+    portraitSrc: '/olympe/hermes.webp',
     defaultStatus: 'idle',
   },
 ];
