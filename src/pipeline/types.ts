@@ -53,6 +53,8 @@ export interface PipelineState {
   tasks: PipelineTask[];
   /** Missions en cours (relais divin actif) */
   missions: Mission[];
+  /** Missions terminées — la mémoire de Pandore les conserve */
+  archivedMissions: Mission[];
   /** Dernière mise à jour */
   updatedAt: string;
 }

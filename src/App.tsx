@@ -13,8 +13,10 @@ import { AnimatePresence } from 'framer-motion';
 import { PanoramicHub } from './components/PanoramicHub';
 import { GodTerrace } from './components/GodTerrace';
 import { PandoreVault } from './components/PandoreVault';
+import { CronosCommandRoom } from './components/CronosCommandRoom';
 import { ScrollPanel } from './components/ScrollPanel';
 import { SoundToggle } from './components/SoundToggle';
+import { NotificationCenter } from './components/NotificationCenter';
 import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
 import { usePipelineState } from './pipeline/usePipeline';
 import type { God } from './data/gods';
@@ -22,7 +24,8 @@ import type { God } from './data/gods';
 type Scene =
   | { kind: 'hub' }
   | { kind: 'terrace'; god: God }
-  | { kind: 'vault' }; // la Boîte de Pandore — lieu spécial
+  | { kind: 'vault' }     // la Boîte de Pandore — archives
+  | { kind: 'command' };  // la Salle du Commandement — Cronos
 
 export default function App() {
   const [scene, setScene] = useState<Scene>({ kind: 'hub' });
@@ -48,10 +51,11 @@ export default function App() {
   }, []);
 
   // Route vers la bonne scène selon le dieu choisi.
-  // Pandore => vault, sinon => terrace classique.
+  // Pandore => archives ; Cronos => salle du commandement ; autres => terrasse.
   const enterGod = (god: God) => {
     sfxSelect();
     if (god.id === 'pandore') setScene({ kind: 'vault' });
+    else if (god.id === 'cronos') setScene({ kind: 'command' });
     else setScene({ kind: 'terrace', god });
   };
 
@@ -82,10 +86,14 @@ export default function App() {
         {scene.kind === 'vault' && (
           <PandoreVault key="vault" onBack={backToHub} />
         )}
+        {scene.kind === 'command' && (
+          <CronosCommandRoom key="command" onBack={backToHub} />
+        )}
       </AnimatePresence>
 
       <ScrollPanel god={panelGod} onClose={() => setPanelGod(null)} />
       <SoundToggle />
+      <NotificationCenter />
     </div>
   );
 }

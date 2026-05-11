@@ -63,6 +63,7 @@ function makeInitialState(): PipelineState {
       },
     ],
     missions: [],
+    archivedMissions: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -124,10 +125,15 @@ export function createMockPipelineSource(): PipelineSource {
 
     const nextIndex = mission.currentStageIndex + 1;
     let nextStatus: Mission['status'] = mission.status;
+    let archivedMissions = state.archivedMissions;
 
     if (nextIndex >= stages.length) {
-      // Terminée
+      // Terminée — archive automatique dans la mémoire de Pandore
       nextStatus = 'done';
+      archivedMissions = [
+        { ...mission, stages, currentStageIndex: -1, status: 'done' },
+        ...state.archivedMissions,
+      ];
     } else {
       const next = stages[nextIndex];
       next.status = 'active';
@@ -140,15 +146,21 @@ export function createMockPipelineSource(): PipelineSource {
       stageTimers.set(missionId, t);
     }
 
-    const newMissions = [...state.missions];
-    newMissions[idx] = {
-      ...mission,
-      stages,
-      currentStageIndex: nextIndex >= stages.length ? -1 : nextIndex,
-      status: nextStatus,
-    };
-    state = { ...state, missions: newMissions };
+    let newMissions = [...state.missions];
+    if (nextStatus === 'done') {
+      // Retirer la mission active (elle vit maintenant dans archivedMissions)
+      newMissions.splice(idx, 1);
+      stageTimers.delete(missionId);
+    } else {
+      newMissions[idx] = {
+        ...mission,
+        stages,
+        currentStageIndex: nextIndex >= stages.length ? -1 : nextIndex,
+        status: nextStatus,
+      };
+    }
 
+    state = { ...state, missions: newMissions, archivedMissions };
     recomputeGodStatuses();
     emit();
   };

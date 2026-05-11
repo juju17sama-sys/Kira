@@ -15,6 +15,8 @@ import { ARCHIVES, type ArchiveEntry, type ArchiveKind } from '../data/archives'
 import { getGod } from '../data/gods';
 import { assetUrl } from '../utils/assets';
 import { AmbientLayer } from './AmbientLayer';
+import { usePipelineState } from '../pipeline/usePipeline';
+import type { Mission } from '../pipeline/types';
 
 interface Props {
   onBack: () => void;
@@ -41,14 +43,35 @@ const KIND_GLYPHS: Record<ArchiveKind, string> = {
   erreur: '⚠',
 };
 
+// Convertit une mission terminée en entrée d'archive consultable dans Pandore
+function missionToArchive(m: Mission): ArchiveEntry {
+  const stagesSummary = m.stages.map((s) => `${s.godId}`).join(' → ');
+  return {
+    id: `mission-${m.id}`,
+    date: m.createdAt.slice(0, 10),
+    kind: 'clip',
+    title: m.title,
+    detail: `Relais complet : ${stagesSummary}. Mission orchestrée par Cronos et archivée par Pandore.`,
+    tags: ['mission', 'pipeline', 'auto'],
+  };
+}
+
 export function PandoreVault({ onBack }: Props) {
   const pandore = getGod('pandore');
   const [filter, setFilter] = useState<ArchiveKind | 'all'>('all');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<ArchiveEntry | null>(null);
 
+  const pipeline = usePipelineState();
+
+  // Fusion : missions auto-archivées (en haut) + archives de démo (statiques)
+  const allArchives = useMemo(() => {
+    const fromMissions = pipeline.archivedMissions.map(missionToArchive);
+    return [...fromMissions, ...ARCHIVES];
+  }, [pipeline.archivedMissions]);
+
   const filtered = useMemo(() => {
-    let list = ARCHIVES;
+    let list = allArchives;
     if (filter !== 'all') list = list.filter((a) => a.kind === filter);
     const q = query.trim().toLowerCase();
     if (q) {
@@ -61,7 +84,7 @@ export function PandoreVault({ onBack }: Props) {
     }
     // Plus récent en premier
     return [...list].sort((a, b) => b.date.localeCompare(a.date));
-  }, [filter, query]);
+  }, [filter, query, allArchives]);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
