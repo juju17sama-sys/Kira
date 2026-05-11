@@ -50,13 +50,15 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* ═══ Decor : respiration + parallax ═══ */}
+      {/* ═══ Decor : respiration + parallax + entree dolly-zoom cinematique ═══ */}
+      {/* Le decor commence zoomé (camera proche) et recule lentement.        */}
+      {/* Donne la sensation "tu marches vers le dieu" en t'approchant.       */}
       <motion.div
         className="absolute inset-0"
-        initial={{ scale: 1.08, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
+        initial={{ scale: 1.22, opacity: 0, filter: 'blur(8px)' }}
+        animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, scale: 1.05 }}
+        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
         style={{ x: bgX, y: bgY }}
       >
         <motion.img
