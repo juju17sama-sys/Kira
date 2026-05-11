@@ -97,15 +97,15 @@ export function ScrollPanel({ god, onClose }: Props) {
                 <div className="flex items-start justify-between gap-6">
                   <div>
                     <div
-                      className="font-serif text-3xl tracking-[0.25em]"
+                      className="font-serif text-4xl tracking-[0.25em]"
                       style={{ color: god.palette.primary }}
                     >
                       {god.name.toUpperCase()}
                     </div>
-                    <div className="font-body italic text-ink/80 text-base mt-1">
+                    <div className="font-body italic text-ink/85 text-xl mt-2">
                       {god.title}
                     </div>
-                    <div className="font-body text-ink/60 text-sm mt-1 tracking-wider">
+                    <div className="font-body text-ink/70 text-base mt-1.5 tracking-wider">
                       {god.role}
                     </div>
                   </div>
@@ -121,15 +121,15 @@ export function ScrollPanel({ god, onClose }: Props) {
 
               {/* Description */}
               <div className="px-10 py-5">
-                <p className="font-body text-ink/85 italic leading-relaxed">
+                <p className="font-body text-ink/90 italic leading-relaxed text-lg">
                   « {god.description} »
                 </p>
               </div>
 
               {/* ═══ Missions BLOQUÉES — intervention requise (Athéna) ═══ */}
               {blockedHere.length > 0 && (
-                <div className="px-10 pb-2">
-                  <div className="font-serif text-xs tracking-[0.3em] text-red-900 mb-3">
+                <div className="px-10 pb-3">
+                  <div className="font-serif text-sm tracking-[0.3em] text-red-900 mb-3">
                     ⚠ INTERVENTION REQUISE · {blockedHere.length}
                   </div>
                   <div className="space-y-2">
@@ -138,17 +138,17 @@ export function ScrollPanel({ god, onClose }: Props) {
                         key={m.id}
                         className="py-3 px-4 border-l-4 border-red-700 bg-red-50/60 rounded-sm"
                       >
-                        <div className="font-body text-ink font-semibold">
+                        <div className="font-body text-ink font-semibold text-lg">
                           {m.title}
                         </div>
                         {m.blockReason && (
-                          <div className="mt-1 font-body italic text-red-900/85 text-[14px] leading-snug">
+                          <div className="mt-1.5 font-body italic text-red-900/90 text-base leading-snug">
                             « {m.blockReason} »
                           </div>
                         )}
                         <button
                           onClick={() => unblockMission(m.id)}
-                          className="mt-3 px-4 py-1.5 bg-red-700 hover:bg-red-600 text-white font-serif text-[11px] tracking-[0.25em] transition-colors"
+                          className="mt-3 px-5 py-2 bg-red-700 hover:bg-red-600 text-white font-serif text-sm tracking-[0.2em] transition-colors"
                         >
                           ⟁ DÉBLOQUER ET POURSUIVRE
                         </button>
@@ -161,7 +161,7 @@ export function ScrollPanel({ god, onClose }: Props) {
               {/* ═══ Missions actives passant chez ce dieu ═══ */}
               {missions.length > 0 && (
                 <div className="px-10 pb-2">
-                  <div className="font-serif text-xs tracking-[0.3em] text-ink/60 mb-3">
+                  <div className="font-serif text-sm tracking-[0.3em] text-ink/70 mb-3">
                     MISSIONS EN RELAIS · {missions.length}
                   </div>
                   <div className="space-y-2">
@@ -187,16 +187,16 @@ export function ScrollPanel({ god, onClose }: Props) {
                                   transition={{ duration: 1.2, repeat: Infinity }}
                                 />
                               )}
-                              <span className="font-body text-ink">
+                              <span className="font-body text-ink text-base">
                                 {m.title}
                               </span>
                             </div>
-                            <span className="font-serif text-[10px] tracking-[0.2em] text-ink/60 whitespace-nowrap">
+                            <span className="font-serif text-xs tracking-[0.2em] text-ink/70 whitespace-nowrap">
                               {stageNum}/{total}
                             </span>
                           </div>
                           {/* Mini barre de progression */}
-                          <div className="mt-2 h-0.5 bg-ink/10 overflow-hidden rounded-full">
+                          <div className="mt-2 h-1 bg-ink/10 overflow-hidden rounded-full">
                             <motion.div
                               className="h-full"
                               style={{ background: god.palette.primary }}
@@ -205,7 +205,7 @@ export function ScrollPanel({ god, onClose }: Props) {
                             />
                           </div>
                           {isHere && cur && (
-                            <div className="mt-1 font-body italic text-ink/70 text-[13px]">
+                            <div className="mt-1.5 font-body italic text-ink/75 text-sm">
                               ⟶ {cur.label}
                             </div>
                           )}
@@ -218,37 +218,37 @@ export function ScrollPanel({ god, onClose }: Props) {
 
               {/* Liste des taches — connectee au pipeline reel */}
               <div className="px-10 pb-6 pt-4">
-                <div className="font-serif text-xs tracking-[0.3em] text-ink/60 mb-3">
+                <div className="font-serif text-sm tracking-[0.3em] text-ink/70 mb-3">
                   TÂCHES EN COURS
                 </div>
                 <div className="space-y-2">
                   {tasks.length === 0 && (
-                    <div className="py-2 px-3 font-body italic text-ink/50">
+                    <div className="py-2 px-3 font-body italic text-ink/55 text-base">
                       — aucune tâche assignée pour l'instant —
                     </div>
                   )}
                   {tasks.map((t) => (
                     <div
                       key={t.id}
-                      className="py-2 px-3 border-l-2 hover:bg-gold/10 transition-colors"
+                      className="py-2.5 px-3 border-l-2 hover:bg-gold/10 transition-colors"
                       style={{ borderColor: god.palette.primary }}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-body text-ink">{t.title}</span>
+                        <span className="font-body text-ink text-base">{t.title}</span>
                         <span
-                          className="font-serif text-[10px] tracking-[0.2em] whitespace-nowrap"
+                          className="font-serif text-xs tracking-[0.2em] whitespace-nowrap"
                           style={{
                             color:
                               t.status === 'blocked' || t.status === 'failed'
                                 ? '#a32d2d'
-                                : 'rgba(26,20,12,0.65)',
+                                : 'rgba(26,20,12,0.75)',
                           }}
                         >
                           {TASK_STATUS_LABELS[t.status].toUpperCase()}
                         </span>
                       </div>
                       {t.blockReason && (
-                        <div className="mt-1 font-body italic text-[13px] text-red-900/80">
+                        <div className="mt-1.5 font-body italic text-sm text-red-900/85">
                           ⚠ {t.blockReason}
                         </div>
                       )}
@@ -263,7 +263,7 @@ export function ScrollPanel({ god, onClose }: Props) {
                   <div className="flex gap-3">
                     <button
                       onClick={() => setInvoking(true)}
-                      className="flex-1 py-3 border-2 font-serif text-xs tracking-[0.3em] hover:bg-gold/15 transition-colors"
+                      className="flex-1 py-3.5 border-2 font-serif text-sm tracking-[0.3em] hover:bg-gold/15 transition-colors"
                       style={{
                         borderColor: god.palette.primary,
                         color: god.palette.primary,
@@ -271,7 +271,7 @@ export function ScrollPanel({ god, onClose }: Props) {
                     >
                       INVOQUER UNE MISSION
                     </button>
-                    <button className="flex-1 py-3 border border-ink/30 font-serif text-xs tracking-[0.3em] text-ink/70 hover:bg-ink/5 transition-colors">
+                    <button className="flex-1 py-3.5 border border-ink/30 font-serif text-sm tracking-[0.3em] text-ink/75 hover:bg-ink/5 transition-colors">
                       CONSULTER LES ARCHIVES
                     </button>
                   </div>
@@ -282,7 +282,7 @@ export function ScrollPanel({ god, onClose }: Props) {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-3"
                   >
-                    <div className="font-serif text-xs tracking-[0.3em] text-ink/60">
+                    <div className="font-serif text-sm tracking-[0.3em] text-ink/70">
                       NOUVELLE MISSION — DICTEZ LE TITRE
                     </div>
                     <input
@@ -295,13 +295,13 @@ export function ScrollPanel({ god, onClose }: Props) {
                         if (e.key === 'Escape') setInvoking(false);
                       }}
                       placeholder="Clip #043 — Comeback Lancelot"
-                      className="w-full px-4 py-3 bg-marble/40 border-2 outline-none font-body text-ink placeholder:text-ink/40 text-base"
+                      className="w-full px-4 py-3 bg-marble/40 border-2 outline-none font-body text-ink placeholder:text-ink/45 text-lg"
                       style={{ borderColor: god.palette.primary }}
                     />
                     <div className="flex gap-3">
                       <button
                         onClick={handleInvoke}
-                        className="flex-1 py-3 border-2 font-serif text-xs tracking-[0.3em] transition-all hover:brightness-110"
+                        className="flex-1 py-3.5 border-2 font-serif text-sm tracking-[0.3em] transition-all hover:brightness-110"
                         style={{
                           borderColor: god.palette.primary,
                           background: god.palette.primary,
@@ -312,12 +312,12 @@ export function ScrollPanel({ god, onClose }: Props) {
                       </button>
                       <button
                         onClick={() => setInvoking(false)}
-                        className="px-5 py-3 border border-ink/30 font-serif text-xs tracking-[0.3em] text-ink/70 hover:bg-ink/5 transition-colors"
+                        className="px-6 py-3.5 border border-ink/30 font-serif text-sm tracking-[0.3em] text-ink/75 hover:bg-ink/5 transition-colors"
                       >
                         ANNULER
                       </button>
                     </div>
-                    <div className="font-body italic text-ink/50 text-[12px]">
+                    <div className="font-body italic text-ink/60 text-sm">
                       La mission traversera les 9 dieux en relais. Tempo total ~50 secondes en démo.
                     </div>
                   </motion.div>
