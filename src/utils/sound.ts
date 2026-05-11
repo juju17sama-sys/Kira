@@ -179,7 +179,14 @@ function playNote(freq: number, duration = 0.25, type: OscillatorType = 'sine', 
 }
 
 // ─── Hover : note rapide, claveciniste minimaliste ──────────────────────
+// Throttle pour eviter le spam si la souris balaye plusieurs hotspots rapidement
+let lastHover = 0;
+const HOVER_MIN_INTERVAL = 220; // ms
+
 export function sfxHover() {
+  const now = Date.now();
+  if (now - lastHover < HOVER_MIN_INTERVAL) return;
+  lastHover = now;
   playNote(880, 0.12, 'triangle', 0.08);
 }
 

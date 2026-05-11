@@ -69,9 +69,18 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
           onClick={onOpenPanel}
           onMouseEnter={() => setHoveringGod(true)}
           onMouseLeave={() => setHoveringGod(false)}
-          // Respiration ambiante — tres legere
-          animate={{ scale: [1, 1.008, 1], y: [0, -3, 0] }}
-          transition={{ duration: 7, ease: 'easeInOut', repeat: Infinity }}
+          // Respiration ambiante : scale + flottement vertical desynchronises
+          // pour eviter une oscillation trop "mecanique"
+          animate={{
+            scale: [1, 1.012, 1.006, 1.014, 1],
+            y: [0, -3, -1, -4, 0],
+          }}
+          transition={{
+            duration: 9,
+            ease: 'easeInOut',
+            repeat: Infinity,
+            times: [0, 0.3, 0.55, 0.8, 1],
+          }}
         />
 
         {/* Halo doux quand on survole le dieu — rappel d'interactivite */}
