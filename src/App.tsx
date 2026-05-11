@@ -58,6 +58,37 @@ export default function App() {
     };
   }, []);
 
+  // Navigation clavier : touches 1-9 = aller direct au dieu correspondant
+  // (ordre canonique du panthéon)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+      const num = parseInt(e.key, 10);
+      if (Number.isNaN(num) || num < 1 || num > 9) return;
+      // Import dynamique pour eviter le cycle
+      import('./data/gods').then(({ GODS }) => {
+        const god = GODS[num - 1];
+        if (god) enterGod(god);
+      });
+      // Touche '0' ou 'Échap' → retour hub
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') backToHub();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onEsc);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onEsc);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Route vers la bonne scène selon le dieu choisi.
   // Pandore => archives ; Cronos => salle du commandement ; autres => terrasse.
   const enterGod = (god: God) => {
