@@ -7,7 +7,13 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { God } from '../data/gods';
 import { sfxChime, sfxSelect } from '../utils/sound';
-import { invokeMission, useGodMissions, useGodTasks } from '../pipeline/usePipeline';
+import {
+  invokeMission,
+  unblockMission,
+  useGodMissions,
+  useGodTasks,
+  usePipelineState,
+} from '../pipeline/usePipeline';
 import { activeStage } from '../pipeline/mockSource';
 import type { PipelineTask } from '../pipeline/types';
 
@@ -33,8 +39,15 @@ export function ScrollPanel({ god, onClose }: Props) {
 
   // Tâches et missions réelles du dieu courant (via le pipeline)
   const tasks = useGodTasks(god?.id ?? 'cronos');
-  const missions = useGodMissions(god?.id ?? 'cronos').filter(
-    (m) => m.status === 'running',
+  const allMissions = useGodMissions(god?.id ?? 'cronos');
+  const missions = allMissions.filter((m) => m.status === 'running');
+
+  // Missions bloquées chez ce dieu (Athéna principalement)
+  const fullPipeline = usePipelineState();
+  const blockedHere = fullPipeline.missions.filter(
+    (m) =>
+      m.status === 'blocked' &&
+      m.stages[m.currentStageIndex]?.godId === god?.id,
   );
 
   // État : invocation en cours (saisie du titre)
@@ -112,6 +125,38 @@ export function ScrollPanel({ god, onClose }: Props) {
                   « {god.description} »
                 </p>
               </div>
+
+              {/* ═══ Missions BLOQUÉES — intervention requise (Athéna) ═══ */}
+              {blockedHere.length > 0 && (
+                <div className="px-10 pb-2">
+                  <div className="font-serif text-xs tracking-[0.3em] text-red-900 mb-3">
+                    ⚠ INTERVENTION REQUISE · {blockedHere.length}
+                  </div>
+                  <div className="space-y-2">
+                    {blockedHere.map((m) => (
+                      <div
+                        key={m.id}
+                        className="py-3 px-4 border-l-4 border-red-700 bg-red-50/60 rounded-sm"
+                      >
+                        <div className="font-body text-ink font-semibold">
+                          {m.title}
+                        </div>
+                        {m.blockReason && (
+                          <div className="mt-1 font-body italic text-red-900/85 text-[14px] leading-snug">
+                            « {m.blockReason} »
+                          </div>
+                        )}
+                        <button
+                          onClick={() => unblockMission(m.id)}
+                          className="mt-3 px-4 py-1.5 bg-red-700 hover:bg-red-600 text-white font-serif text-[11px] tracking-[0.25em] transition-colors"
+                        >
+                          ⟁ DÉBLOQUER ET POURSUIVRE
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* ═══ Missions actives passant chez ce dieu ═══ */}
               {missions.length > 0 && (

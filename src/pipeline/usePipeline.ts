@@ -52,3 +52,8 @@ export function useGodMissions(godId: GodId) {
 export function invokeMission(title: string) {
   return getSource().createMission(title);
 }
+
+/** Action : débloquer une mission bloquée (typiquement par Athéna) */
+export function unblockMission(missionId: string) {
+  getSource().unblockMission(missionId);
+}

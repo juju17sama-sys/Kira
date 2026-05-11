@@ -70,6 +70,15 @@ function makeInitialState(): PipelineState {
 
 let nextMissionNumber = 42;
 
+// Raisons aléatoires de blocage par Athéna — réalistes vs un pipeline TikTok
+const ATHENA_BLOCK_REASONS = [
+  'Le clip dépasse la durée TikTok recommandée (1m02 vs 60s).',
+  'La miniature contient du texte mal positionné — risque d’illisibilité mobile.',
+  'Le hook audio démarre 0.4s après l’action visuelle — perte de rétention prévue.',
+  'Le hashtag principal est en déclin depuis 72h — proposition de remplacement nécessaire.',
+  'Un sous-titre comporte une faute de frappe — relecture requise.',
+];
+
 export function createMockPipelineSource(): PipelineSource {
   let state = makeInitialState();
   const listeners = new Set<(s: PipelineState) => void>();
@@ -138,12 +147,31 @@ export function createMockPipelineSource(): PipelineSource {
       const next = stages[nextIndex];
       next.status = 'active';
       next.startedAt = new Date().toISOString();
-      // Programmer l'avancement
-      const t = setTimeout(
-        () => advanceMission(missionId),
-        RELAY[nextIndex].duration,
-      );
-      stageTimers.set(missionId, t);
+
+      // ═══ Athéna peut bloquer la mission (1 chance sur 3) ═══
+      // Réalisme : le contrôle qualité est ce qui rate le plus souvent dans
+      // un pipeline. Donne du sens au rôle de Julien (débloquer manuellement).
+      const isAthena = next.godId === 'athena';
+      const willBlock = isAthena && Math.random() < 0.34;
+
+      if (willBlock) {
+        next.status = 'blocked';
+        nextStatus = 'blocked';
+        const reason =
+          ATHENA_BLOCK_REASONS[
+            Math.floor(Math.random() * ATHENA_BLOCK_REASONS.length)
+          ];
+        // On stocke la raison sur la mission ET sur le stage
+        // (mission.blockReason est défini plus bas dans le nouveau state)
+        (stages[nextIndex] as MissionStage & { blockReason?: string }).blockReason = reason;
+      } else {
+        // Programmer l'avancement normalement
+        const t = setTimeout(
+          () => advanceMission(missionId),
+          RELAY[nextIndex].duration,
+        );
+        stageTimers.set(missionId, t);
+      }
     }
 
     let newMissions = [...state.missions];
@@ -152,11 +180,16 @@ export function createMockPipelineSource(): PipelineSource {
       newMissions.splice(idx, 1);
       stageTimers.delete(missionId);
     } else {
+      const blockReason =
+        nextStatus === 'blocked'
+          ? (stages[nextIndex] as MissionStage & { blockReason?: string }).blockReason
+          : undefined;
       newMissions[idx] = {
         ...mission,
         stages,
         currentStageIndex: nextIndex >= stages.length ? -1 : nextIndex,
         status: nextStatus,
+        blockReason,
       };
     }
 
@@ -204,6 +237,38 @@ export function createMockPipelineSource(): PipelineSource {
       stageTimers.set(id, t);
 
       return mission;
+    },
+
+    unblockMission(missionId) {
+      const idx = state.missions.findIndex((m) => m.id === missionId);
+      if (idx === -1) return;
+      const mission = state.missions[idx];
+      if (mission.status !== 'blocked') return;
+
+      // Le stage actif (bloqué) repasse à 'active' et on relance le timer
+      const stages = mission.stages.map((s) => ({ ...s }));
+      const cur = stages[mission.currentStageIndex];
+      if (!cur) return;
+      cur.status = 'active';
+      (cur as MissionStage & { blockReason?: string }).blockReason = undefined;
+
+      const newMissions = [...state.missions];
+      newMissions[idx] = {
+        ...mission,
+        stages,
+        status: 'running',
+        blockReason: undefined,
+      };
+      state = { ...state, missions: newMissions };
+      recomputeGodStatuses();
+      emit();
+
+      // Relancer l'avancement
+      const t = setTimeout(
+        () => advanceMission(missionId),
+        RELAY[mission.currentStageIndex].duration,
+      );
+      stageTimers.set(missionId, t);
     },
   };
 }

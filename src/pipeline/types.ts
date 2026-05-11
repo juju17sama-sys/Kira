@@ -43,6 +43,8 @@ export interface Mission {
   currentStageIndex: number;
   /** done si tous les stages sont done, blocked si l'un est blocked */
   status: 'running' | 'done' | 'blocked';
+  /** Si blocked : raison textuelle pour Julien */
+  blockReason?: string;
 }
 
 /** État global du pipeline à un instant T */
@@ -71,4 +73,6 @@ export interface PipelineSource {
   getState(): PipelineState;
   /** Crée une nouvelle mission (le relais divin démarre immédiatement) */
   createMission(title: string): Mission;
+  /** Débloque une mission bloquée (typiquement par Athéna) */
+  unblockMission(missionId: string): void;
 }
