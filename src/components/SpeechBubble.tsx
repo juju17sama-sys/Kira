@@ -17,6 +17,8 @@ interface Props {
   tone: 'idle' | 'working' | 'blocked';
   /** Position de la queue : "left" = bulle à gauche du dieu, "right" = à droite */
   pointTo?: 'left' | 'right';
+  /** Mode inline (sans queue) : pour intégrer dans le parchemin */
+  inline?: boolean;
   className?: string;
   /** Optionnel : action à déclencher au clic (CTA) */
   cta?: { label: string; onClick: () => void };
@@ -27,6 +29,7 @@ export function SpeechBubble({
   text,
   tone,
   pointTo = 'left',
+  inline = false,
   className = '',
   cta,
 }: Props) {
@@ -49,11 +52,15 @@ export function SpeechBubble({
       className={`relative max-w-md ${className}`}
     >
       <div
-        className="relative px-7 py-5 rounded-sm shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md"
+        className={`relative px-6 py-5 rounded-sm ${
+          inline ? '' : 'shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md'
+        }`}
         style={{
-          background:
-            'linear-gradient(180deg, rgba(244,236,220,0.96) 0%, rgba(232,220,195,0.96) 100%)',
+          background: inline
+            ? 'rgba(26,20,12,0.06)' // tres legere teinte sombre sur le parchemin
+            : 'linear-gradient(180deg, rgba(244,236,220,0.96) 0%, rgba(232,220,195,0.96) 100%)',
           border: `2px solid ${borderColor}`,
+          borderLeftWidth: inline ? '4px' : '2px',
         }}
       >
         {/* Étiquette en haut : nom du dieu qui parle */}
@@ -84,32 +91,35 @@ export function SpeechBubble({
           </button>
         )}
 
-        {/* ─── Queue de la bulle (pointe vers le dieu) ─── */}
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
-            pointTo === 'left' ? '-left-3' : '-right-3'
-          }`}
-          style={{
-            borderTop: '10px solid transparent',
-            borderBottom: '10px solid transparent',
-            ...(pointTo === 'left'
-              ? { borderRight: `12px solid ${borderColor}` }
-              : { borderLeft: `12px solid ${borderColor}` }),
-          }}
-        />
-        {/* Queue interieure (parchemin) légèrement décalée pour effet bordure */}
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
-            pointTo === 'left' ? '-left-[10px]' : '-right-[10px]'
-          }`}
-          style={{
-            borderTop: '8px solid transparent',
-            borderBottom: '8px solid transparent',
-            ...(pointTo === 'left'
-              ? { borderRight: '10px solid rgba(244,236,220,0.96)' }
-              : { borderLeft: '10px solid rgba(244,236,220,0.96)' }),
-          }}
-        />
+        {/* ─── Queue de la bulle (pointe vers le dieu) — desactivee en mode inline ─── */}
+        {!inline && (
+          <>
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
+                pointTo === 'left' ? '-left-3' : '-right-3'
+              }`}
+              style={{
+                borderTop: '10px solid transparent',
+                borderBottom: '10px solid transparent',
+                ...(pointTo === 'left'
+                  ? { borderRight: `12px solid ${borderColor}` }
+                  : { borderLeft: `12px solid ${borderColor}` }),
+              }}
+            />
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
+                pointTo === 'left' ? '-left-[10px]' : '-right-[10px]'
+              }`}
+              style={{
+                borderTop: '8px solid transparent',
+                borderBottom: '8px solid transparent',
+                ...(pointTo === 'left'
+                  ? { borderRight: '10px solid rgba(244,236,220,0.96)' }
+                  : { borderLeft: '10px solid rgba(244,236,220,0.96)' }),
+              }}
+            />
+          </>
+        )}
       </div>
     </motion.div>
   );

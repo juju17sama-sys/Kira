@@ -14,10 +14,7 @@ import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import type { God } from '../data/gods';
 import { AmbientLayer } from './AmbientLayer';
-import { SpeechBubble } from './SpeechBubble';
 import { assetUrl } from '../utils/assets';
-import { generateGodSpeech } from '../utils/godSpeech';
-import { usePipelineState, unblockMission } from '../pipeline/usePipeline';
 
 interface Props {
   god: God;
@@ -50,11 +47,6 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
   }, [mouseX, mouseY]);
 
   const [hoveringGod, setHoveringGod] = useState(false);
-
-  // ═══ Génération du dialogue narratif du dieu ═══
-  // Connecté en live au pipeline : si le statut change, le message change.
-  const pipeline = usePipelineState();
-  const speech = generateGodSpeech(god.id, pipeline);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
@@ -122,24 +114,34 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
         </div>
       </button>
 
-      {/* ═══ Bulle de dialogue du dieu — narrative et vivante ═══ */}
-      {/* Apparait en bas-droite, raconte ce que le dieu fait maintenant. */}
-      <div className="absolute bottom-6 right-4 sm:bottom-10 sm:right-10 max-w-[calc(100vw-2rem)] sm:max-w-md z-20">
-        <SpeechBubble
-          god={god}
-          text={speech.text}
-          tone={speech.tone}
-          pointTo="right"
-          cta={
-            speech.tone === 'blocked' && speech.mission
-              ? {
-                  label: '⟁ DÉBLOQUER ET POURSUIVRE',
-                  onClick: () => unblockMission(speech.mission!.id),
-                }
-              : { label: 'CONSULTER LE PARCHEMIN', onClick: onOpenPanel }
-          }
-        />
-      </div>
+      {/* ═══ Cartouche d'identite — bas droite ═══ */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="absolute bottom-6 right-4 sm:bottom-10 sm:right-10 max-w-[calc(100vw-2rem)] sm:max-w-md z-20"
+      >
+        <div className="px-7 py-5 bg-black/55 backdrop-blur-sm border border-gold/40 rounded-sm">
+          <div
+            className="font-serif text-3xl tracking-[0.25em]"
+            style={{ color: god.palette.accent }}
+          >
+            {god.name.toUpperCase()}
+          </div>
+          <div className="font-body italic text-marble/85 text-base mt-1">
+            {god.title}
+          </div>
+          <div className="font-body text-gold/70 text-sm mt-2 tracking-wider">
+            {god.role}
+          </div>
+          <button
+            onClick={onOpenPanel}
+            className="mt-4 px-5 py-2 border border-gold/60 hover:border-gold-light hover:bg-gold/10 transition-colors font-serif text-xs tracking-[0.3em] text-gold-light"
+          >
+            CONSULTER
+          </button>
+        </div>
+      </motion.div>
 
       {/* ═══ Indication discrete d'interactivite ═══ */}
       <motion.div

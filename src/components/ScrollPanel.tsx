@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { God } from '../data/gods';
 import { sfxChime, sfxSelect } from '../utils/sound';
+import { SpeechBubble } from './SpeechBubble';
+import { generateGodSpeech } from '../utils/godSpeech';
 import {
   invokeMission,
   unblockMission,
@@ -49,6 +51,9 @@ export function ScrollPanel({ god, onClose }: Props) {
       m.status === 'blocked' &&
       m.stages[m.currentStageIndex]?.godId === god?.id,
   );
+
+  // Dialogue narratif dynamique du dieu — apparait en haut du parchemin
+  const speech = god ? generateGodSpeech(god.id, fullPipeline) : null;
 
   // État : invocation en cours (saisie du titre)
   const [invoking, setInvoking] = useState(false);
@@ -119,12 +124,24 @@ export function ScrollPanel({ god, onClose }: Props) {
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="px-10 py-5">
-                <p className="font-body text-ink/90 italic leading-relaxed text-lg">
-                  « {god.description} »
+              {/* Description du rôle (statique, presentation du dieu) */}
+              <div className="px-10 pt-5 pb-3">
+                <p className="font-body text-ink/85 italic leading-relaxed text-base">
+                  {god.description}
                 </p>
               </div>
+
+              {/* ═══ Bulle de dialogue dynamique — le dieu parle en personne ═══ */}
+              {speech && (
+                <div className="px-10 pb-4">
+                  <SpeechBubble
+                    god={god}
+                    text={speech.text}
+                    tone={speech.tone}
+                    inline
+                  />
+                </div>
+              )}
 
               {/* ═══ Missions BLOQUÉES — intervention requise (Athéna) ═══ */}
               {blockedHere.length > 0 && (
