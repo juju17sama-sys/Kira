@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { GODS, type God, type GodId, type GodStatus } from '../data/gods';
 import { AlertGlyph } from './AlertGlyph';
 import { AmbientLayer } from './AmbientLayer';
+import { RelayFlame } from './RelayFlame';
 import { assetUrl } from '../utils/assets';
 import { sfxHover } from '../utils/sound';
 
@@ -204,6 +205,9 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
 
       {/* ═══ Couche ambiante (desactivee en edition pour eviter les distractions) ═══ */}
       {!editing && <AmbientLayer sparkCount={14} intensity={0.9} />}
+
+      {/* ═══ Flammes de relais — voyagent entre dieux quand mission progresse ═══ */}
+      {!editing && <RelayFlame />}
 
       {/* Vignette douce */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/10 via-transparent to-black/40" />

@@ -3,11 +3,12 @@
 // ║  S'ouvre sur clic du dieu. Esthétique parchemin/marbre, pas modal. ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { God } from '../data/gods';
-import { sfxChime } from '../utils/sound';
-import { useGodTasks } from '../pipeline/usePipeline';
+import { sfxChime, sfxSelect } from '../utils/sound';
+import { invokeMission, useGodMissions, useGodTasks } from '../pipeline/usePipeline';
+import { activeStage } from '../pipeline/mockSource';
 import type { PipelineTask } from '../pipeline/types';
 
 interface Props {
@@ -30,8 +31,22 @@ export function ScrollPanel({ god, onClose }: Props) {
     if (god) sfxChime();
   }, [god]);
 
-  // Tâches réelles du dieu courant (via le pipeline)
+  // Tâches et missions réelles du dieu courant (via le pipeline)
   const tasks = useGodTasks(god?.id ?? 'cronos');
+  const missions = useGodMissions(god?.id ?? 'cronos').filter(
+    (m) => m.status === 'running',
+  );
+
+  // État : invocation en cours (saisie du titre)
+  const [invoking, setInvoking] = useState(false);
+  const [missionTitle, setMissionTitle] = useState('');
+
+  const handleInvoke = () => {
+    sfxSelect();
+    invokeMission(missionTitle);
+    setMissionTitle('');
+    setInvoking(false);
+  };
 
   return (
     <AnimatePresence>
@@ -98,8 +113,66 @@ export function ScrollPanel({ god, onClose }: Props) {
                 </p>
               </div>
 
+              {/* ═══ Missions actives passant chez ce dieu ═══ */}
+              {missions.length > 0 && (
+                <div className="px-10 pb-2">
+                  <div className="font-serif text-xs tracking-[0.3em] text-ink/60 mb-3">
+                    MISSIONS EN RELAIS · {missions.length}
+                  </div>
+                  <div className="space-y-2">
+                    {missions.map((m) => {
+                      const cur = activeStage(m);
+                      const isHere = cur?.godId === god.id;
+                      const stageNum = m.currentStageIndex + 1;
+                      const total = m.stages.length;
+                      const progress = (stageNum / total) * 100;
+                      return (
+                        <div
+                          key={m.id}
+                          className="py-2 px-3 border-l-2 bg-gold/5 rounded-sm"
+                          style={{ borderColor: god.palette.primary }}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              {isHere && (
+                                <motion.span
+                                  className="inline-block w-2 h-2 rounded-full"
+                                  style={{ background: god.palette.flame }}
+                                  animate={{ opacity: [0.4, 1, 0.4] }}
+                                  transition={{ duration: 1.2, repeat: Infinity }}
+                                />
+                              )}
+                              <span className="font-body text-ink">
+                                {m.title}
+                              </span>
+                            </div>
+                            <span className="font-serif text-[10px] tracking-[0.2em] text-ink/60 whitespace-nowrap">
+                              {stageNum}/{total}
+                            </span>
+                          </div>
+                          {/* Mini barre de progression */}
+                          <div className="mt-2 h-0.5 bg-ink/10 overflow-hidden rounded-full">
+                            <motion.div
+                              className="h-full"
+                              style={{ background: god.palette.primary }}
+                              animate={{ width: `${progress}%` }}
+                              transition={{ duration: 0.6 }}
+                            />
+                          </div>
+                          {isHere && cur && (
+                            <div className="mt-1 font-body italic text-ink/70 text-[13px]">
+                              ⟶ {cur.label}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Liste des taches — connectee au pipeline reel */}
-              <div className="px-10 pb-6">
+              <div className="px-10 pb-6 pt-4">
                 <div className="font-serif text-xs tracking-[0.3em] text-ink/60 mb-3">
                   TÂCHES EN COURS
                 </div>
@@ -139,20 +212,71 @@ export function ScrollPanel({ god, onClose }: Props) {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="px-10 pb-8 flex gap-3">
-                <button
-                  className="flex-1 py-3 border-2 font-serif text-xs tracking-[0.3em] hover:bg-gold/15 transition-colors"
-                  style={{
-                    borderColor: god.palette.primary,
-                    color: god.palette.primary,
-                  }}
-                >
-                  INVOQUER
-                </button>
-                <button className="flex-1 py-3 border border-ink/30 font-serif text-xs tracking-[0.3em] text-ink/70 hover:bg-ink/5 transition-colors">
-                  CONSULTER LES ARCHIVES
-                </button>
+              {/* ═══ Actions ═══ */}
+              <div className="px-10 pb-8">
+                {!invoking ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setInvoking(true)}
+                      className="flex-1 py-3 border-2 font-serif text-xs tracking-[0.3em] hover:bg-gold/15 transition-colors"
+                      style={{
+                        borderColor: god.palette.primary,
+                        color: god.palette.primary,
+                      }}
+                    >
+                      INVOQUER UNE MISSION
+                    </button>
+                    <button className="flex-1 py-3 border border-ink/30 font-serif text-xs tracking-[0.3em] text-ink/70 hover:bg-ink/5 transition-colors">
+                      CONSULTER LES ARCHIVES
+                    </button>
+                  </div>
+                ) : (
+                  /* Dialogue d'invocation — saisie du titre */
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                  >
+                    <div className="font-serif text-xs tracking-[0.3em] text-ink/60">
+                      NOUVELLE MISSION — DICTEZ LE TITRE
+                    </div>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={missionTitle}
+                      onChange={(e) => setMissionTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleInvoke();
+                        if (e.key === 'Escape') setInvoking(false);
+                      }}
+                      placeholder="Clip #043 — Comeback Lancelot"
+                      className="w-full px-4 py-3 bg-marble/40 border-2 outline-none font-body text-ink placeholder:text-ink/40 text-base"
+                      style={{ borderColor: god.palette.primary }}
+                    />
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleInvoke}
+                        className="flex-1 py-3 border-2 font-serif text-xs tracking-[0.3em] transition-all hover:brightness-110"
+                        style={{
+                          borderColor: god.palette.primary,
+                          background: god.palette.primary,
+                          color: 'white',
+                        }}
+                      >
+                        ⟁ INVOQUER LE RELAIS
+                      </button>
+                      <button
+                        onClick={() => setInvoking(false)}
+                        className="px-5 py-3 border border-ink/30 font-serif text-xs tracking-[0.3em] text-ink/70 hover:bg-ink/5 transition-colors"
+                      >
+                        ANNULER
+                      </button>
+                    </div>
+                    <div className="font-body italic text-ink/50 text-[12px]">
+                      La mission traversera les 9 dieux en relais. Tempo total ~50 secondes en démo.
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>

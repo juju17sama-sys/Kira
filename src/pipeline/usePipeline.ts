@@ -5,14 +5,18 @@
 // ║  Les composants s'abonnent via ce hook et re-render à chaque     ║
 // ║  changement d'état.                                              ║
 // ║                                                                  ║
-// ║  Pour brancher le vrai pipeline plus tard, il suffira de :       ║
+// ║  Pour brancher le vrai pipeline plus tard :                      ║
 // ║   - créer src/pipeline/apiSource.ts                              ║
 // ║   - remplacer createMockPipelineSource par createApiPipelineSource║
 // ║  Tout le reste de l'app reste inchangé.                          ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 import { useEffect, useState } from 'react';
-import { createMockPipelineSource, tasksForGod } from './mockSource';
+import {
+  createMockPipelineSource,
+  missionsForGod,
+  tasksForGod,
+} from './mockSource';
 import type { PipelineSource, PipelineState } from './types';
 import type { GodId } from '../data/gods';
 
@@ -36,4 +40,15 @@ export function usePipelineState(): PipelineState {
 export function useGodTasks(godId: GodId) {
   const state = usePipelineState();
   return tasksForGod(state, godId);
+}
+
+/** Hook : missions actives passant par ce dieu */
+export function useGodMissions(godId: GodId) {
+  const state = usePipelineState();
+  return missionsForGod(state, godId);
+}
+
+/** Action : créer une nouvelle mission (le relais divin démarre) */
+export function invokeMission(title: string) {
+  return getSource().createMission(title);
 }

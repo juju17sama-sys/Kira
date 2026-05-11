@@ -1,40 +1,59 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║  MOCK PIPELINE SOURCE — Statuts simulés                          ║
+// ║  MOCK PIPELINE SOURCE — Statuts simulés + missions en relais     ║
 // ║                                                                  ║
-// ║  Simule un pipeline vivant : les statuts changent toutes les     ║
-// ║  quelques secondes. Permet de tester l'interface immersive       ║
-// ║  comme si le vrai pipeline tournait.                             ║
+// ║  Simule un pipeline vivant :                                     ║
+// ║   - les statuts des dieux changent toutes les quelques secondes  ║
+// ║   - une mission créée traverse les 9 dieux en relais             ║
 // ║                                                                  ║
 // ║  Sera remplacé par une source HTTP / WebSocket connectée à       ║
 // ║  Viral AI Studio.                                                ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 import type { GodId } from '../data/gods';
-import type { PipelineSource, PipelineState, PipelineTask } from './types';
+import type {
+  Mission,
+  MissionStage,
+  PipelineSource,
+  PipelineState,
+  PipelineTask,
+} from './types';
 
-const GODS: GodId[] = [
-  'cronos', 'zeus', 'poseidon', 'hades',
-  'apollon', 'aphrodite', 'athena', 'hermes', 'pandore',
+// ─── Le relais divin standard pour produire un clip MLBB ─────────────
+// L'ordre suit la chaîne de valeur du pipeline Viral AI Studio.
+const RELAY: { godId: GodId; label: string; duration: number }[] = [
+  { godId: 'cronos',    label: 'Orchestration et planification',         duration: 4000 },
+  { godId: 'zeus',      label: 'Identification de la tendance porteuse', duration: 5500 },
+  { godId: 'hades',     label: 'Analyse gameplay et moments-clés',       duration: 7000 },
+  { godId: 'poseidon',  label: 'Montage et rythme du flow',              duration: 8000 },
+  { godId: 'apollon',   label: 'Sélection audio et synchronisation',     duration: 5500 },
+  { godId: 'aphrodite', label: 'Composition de la miniature',            duration: 6500 },
+  { godId: 'hermes',    label: 'Écriture du hook et de la description',  duration: 5000 },
+  { godId: 'athena',    label: 'Contrôle qualité et validation',         duration: 5000 },
+  { godId: 'pandore',   label: 'Archivage de la leçon dans la mémoire',  duration: 3500 },
 ];
+
+function makeStages(): MissionStage[] {
+  return RELAY.map((step) => ({
+    godId: step.godId,
+    label: step.label,
+    status: 'pending',
+  }));
+}
 
 function makeInitialState(): PipelineState {
   return {
     godStatuses: {
-      cronos: 'working',
-      zeus: 'working',
+      cronos: 'idle',
+      zeus: 'idle',
       poseidon: 'idle',
-      hades: 'working',
+      hades: 'idle',
       apollon: 'idle',
-      aphrodite: 'working',
+      aphrodite: 'idle',
       athena: 'blocked',
       hermes: 'idle',
       pandore: 'idle',
     },
     tasks: [
-      { id: 't-001', godId: 'cronos',    title: 'Orchestration du clip #042', status: 'running' },
-      { id: 't-002', godId: 'zeus',      title: 'Analyse tendances TikTok 24h', status: 'running' },
-      { id: 't-003', godId: 'hades',     title: 'Analyse replay match #128',  status: 'running' },
-      { id: 't-004', godId: 'aphrodite', title: 'Brouillon miniature #042',   status: 'running' },
       {
         id: 't-005',
         godId: 'athena',
@@ -43,52 +62,152 @@ function makeInitialState(): PipelineState {
         blockReason: 'Le clip dépasse la durée TikTok recommandée (1m02 vs 60s).',
       },
     ],
+    missions: [],
     updatedAt: new Date().toISOString(),
   };
 }
 
+let nextMissionNumber = 42;
+
 export function createMockPipelineSource(): PipelineSource {
   let state = makeInitialState();
   const listeners = new Set<(s: PipelineState) => void>();
+  const stageTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   const emit = () => {
     state = { ...state, updatedAt: new Date().toISOString() };
     listeners.forEach((l) => l(state));
   };
 
-  // Simulation : un agent change de statut toutes les 7 secondes
-  // (idle <-> working aléatoirement, sauf Athéna qui reste bloquée pour la démo)
-  const tick = () => {
-    const pickable = GODS.filter((g) => g !== 'athena');
-    const g = pickable[Math.floor(Math.random() * pickable.length)];
-    const current = state.godStatuses[g];
-    const next = current === 'working' ? 'idle' : 'working';
-    state = {
-      ...state,
-      godStatuses: { ...state.godStatuses, [g]: next },
+  // Re-calcule godStatuses à partir des missions actives + tâches bloquées
+  const recomputeGodStatuses = () => {
+    const next: Partial<Record<GodId, 'idle' | 'working' | 'blocked' | 'done'>> = {
+      cronos: 'idle',
+      zeus: 'idle',
+      poseidon: 'idle',
+      hades: 'idle',
+      apollon: 'idle',
+      aphrodite: 'idle',
+      athena: 'idle',
+      hermes: 'idle',
+      pandore: 'idle',
     };
-    emit();
+
+    // Toute mission en cours met "working" le dieu de son stage actif
+    for (const m of state.missions) {
+      if (m.status !== 'running') continue;
+      const stage = m.stages[m.currentStageIndex];
+      if (stage) next[stage.godId] = 'working';
+    }
+
+    // Tâches bloquées priment
+    for (const t of state.tasks) {
+      if (t.status === 'blocked') next[t.godId] = 'blocked';
+    }
+
+    state = { ...state, godStatuses: next };
   };
 
-  const interval = typeof window !== 'undefined' ? window.setInterval(tick, 7000) : 0;
+  // Avance le stage suivant d'une mission
+  const advanceMission = (missionId: string) => {
+    const idx = state.missions.findIndex((m) => m.id === missionId);
+    if (idx === -1) return;
+    const mission = state.missions[idx];
+    if (mission.status !== 'running') return;
+
+    const stages = mission.stages.map((s) => ({ ...s }));
+    const cur = stages[mission.currentStageIndex];
+    if (cur) {
+      cur.status = 'done';
+      cur.finishedAt = new Date().toISOString();
+    }
+
+    const nextIndex = mission.currentStageIndex + 1;
+    let nextStatus: Mission['status'] = mission.status;
+
+    if (nextIndex >= stages.length) {
+      // Terminée
+      nextStatus = 'done';
+    } else {
+      const next = stages[nextIndex];
+      next.status = 'active';
+      next.startedAt = new Date().toISOString();
+      // Programmer l'avancement
+      const t = setTimeout(
+        () => advanceMission(missionId),
+        RELAY[nextIndex].duration,
+      );
+      stageTimers.set(missionId, t);
+    }
+
+    const newMissions = [...state.missions];
+    newMissions[idx] = {
+      ...mission,
+      stages,
+      currentStageIndex: nextIndex >= stages.length ? -1 : nextIndex,
+      status: nextStatus,
+    };
+    state = { ...state, missions: newMissions };
+
+    recomputeGodStatuses();
+    emit();
+  };
 
   return {
     subscribe(listener) {
       listeners.add(listener);
-      listener(state); // émission initiale
+      listener(state);
       return () => {
         listeners.delete(listener);
-        // Si plus aucun listener, on pourrait stopper l'interval — mais
-        // l'app n'a qu'une seule source globale, donc on laisse tourner.
       };
     },
     getState: () => state,
-    // @ts-expect-error helper interne pour les tests éventuels
-    _dispose: () => clearInterval(interval),
+
+    createMission(title) {
+      const id = `m-${Date.now()}`;
+      const finalTitle = title.trim() || `Clip #${nextMissionNumber++}`;
+
+      const stages = makeStages();
+      stages[0].status = 'active';
+      stages[0].startedAt = new Date().toISOString();
+
+      const mission: Mission = {
+        id,
+        title: finalTitle,
+        createdAt: new Date().toISOString(),
+        stages,
+        currentStageIndex: 0,
+        status: 'running',
+      };
+
+      state = { ...state, missions: [mission, ...state.missions] };
+      recomputeGodStatuses();
+      emit();
+
+      // Démarrer le relais : avancer après la durée du premier stage
+      const t = setTimeout(
+        () => advanceMission(id),
+        RELAY[0].duration,
+      );
+      stageTimers.set(id, t);
+
+      return mission;
+    },
   };
 }
 
-// Helper pour récupérer les tâches d'un dieu donné
+// ─── Helpers de lecture ─────────────────────────────────────────────
 export function tasksForGod(state: PipelineState, godId: GodId): PipelineTask[] {
   return state.tasks.filter((t) => t.godId === godId);
+}
+
+/** Toutes les missions qui passent (ou sont passées) chez ce dieu */
+export function missionsForGod(state: PipelineState, godId: GodId): Mission[] {
+  return state.missions.filter((m) => m.stages.some((s) => s.godId === godId));
+}
+
+/** Le stage actif d'une mission, ou null si terminée */
+export function activeStage(m: Mission): MissionStage | null {
+  if (m.currentStageIndex < 0) return null;
+  return m.stages[m.currentStageIndex] ?? null;
 }
