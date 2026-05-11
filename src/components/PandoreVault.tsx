@@ -11,8 +11,13 @@
 
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ARCHIVES, type ArchiveEntry, type ArchiveKind } from '../data/archives';
-import { getGod } from '../data/gods';
+import {
+  ARCHIVES,
+  type ArchiveEntry,
+  type ArchiveKind,
+  type ArchiveReport,
+} from '../data/archives';
+import { getGod, GODS } from '../data/gods';
 import { assetUrl } from '../utils/assets';
 import { AmbientLayer } from './AmbientLayer';
 import { usePipelineState } from '../pipeline/usePipeline';
@@ -43,16 +48,53 @@ const KIND_GLYPHS: Record<ArchiveKind, string> = {
   erreur: '⚠',
 };
 
-// Convertit une mission terminée en entrée d'archive consultable dans Pandore
+// Helper : récupère le nom francisé d'un dieu depuis son id
+const godName = (id: string) =>
+  GODS.find((g) => g.id === id)?.name ?? id;
+
+// Convertit une mission terminée en entrée d'archive consultable dans Pandore.
+// Génère un VRAI rapport : durées par stage, action de chaque dieu, blocages.
 function missionToArchive(m: Mission): ArchiveEntry {
-  const stagesSummary = m.stages.map((s) => `${s.godId}`).join(' → ');
+  let totalSeconds = 0;
+  const stages: ArchiveReport['stages'] = m.stages.map((s) => {
+    let durationSeconds = 0;
+    if (s.startedAt && s.finishedAt) {
+      durationSeconds = Math.round(
+        (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000,
+      );
+    }
+    totalSeconds += durationSeconds;
+    return {
+      godId: s.godId,
+      godName: godName(s.godId),
+      action: s.label,
+      durationSeconds,
+      wasBlocked: !!s.blockHistory,
+      blockReason: s.blockHistory,
+    };
+  });
+
+  // Conclusion auto-générée selon les évènements
+  const blockedCount = stages.filter((s) => s.wasBlocked).length;
+  let summary: string;
+  if (blockedCount === 0) {
+    summary = `Relais complet sans incident en ${totalSeconds}s. Le pipeline a fonctionné de bout en bout.`;
+  } else if (blockedCount === 1) {
+    summary = `Relais bouclé en ${totalSeconds}s après l'intervention de Julien sur un blocage (Athéna). Mission menée à terme.`;
+  } else {
+    summary = `Relais difficile : ${blockedCount} blocages levés en cours de route. Total ${totalSeconds}s.`;
+  }
+
+  const report: ArchiveReport = { totalSeconds, stages, summary };
+
   return {
     id: `mission-${m.id}`,
     date: m.createdAt.slice(0, 10),
     kind: 'clip',
     title: m.title,
-    detail: `Relais complet : ${stagesSummary}. Mission orchestrée par Cronos et archivée par Pandore.`,
+    detail: summary,
     tags: ['mission', 'pipeline', 'auto'],
+    report,
   };
 }
 
@@ -252,54 +294,116 @@ export function PandoreVault({ onBack }: Props) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 240, damping: 26 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(640px,92vw)]"
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(720px,94vw)] max-h-[88vh]"
             >
               <div
-                className="relative px-9 py-8 bg-gradient-to-b from-violet-950/95 to-black/95 border-2 rounded-sm shadow-[0_0_60px_rgba(168,85,247,0.4)]"
+                className="relative bg-gradient-to-b from-violet-950/95 to-black/95 border-2 rounded-sm shadow-[0_0_60px_rgba(168,85,247,0.4)] overflow-hidden flex flex-col max-h-[88vh]"
                 style={{ borderColor: KIND_COLORS[selected.kind] }}
               >
-                <button
-                  onClick={() => setSelected(null)}
-                  className="absolute top-3 right-4 font-serif text-violet-200/70 hover:text-white text-2xl leading-none"
-                  aria-label="Fermer"
-                >
-                  ×
-                </button>
-                <div className="flex items-center gap-3 mb-3">
-                  <span
-                    className="font-serif text-3xl"
-                    style={{ color: KIND_COLORS[selected.kind] }}
+                {/* En-tete fixe */}
+                <div className="px-9 pt-8 pb-4 border-b border-violet-400/20 relative shrink-0">
+                  <button
+                    onClick={() => setSelected(null)}
+                    className="absolute top-3 right-4 font-serif text-violet-200/70 hover:text-white text-2xl leading-none"
+                    aria-label="Fermer"
                   >
-                    {KIND_GLYPHS[selected.kind]}
-                  </span>
-                  <span
-                    className="font-serif text-xs tracking-[0.3em] uppercase"
-                    style={{ color: KIND_COLORS[selected.kind] }}
-                  >
-                    {KIND_LABELS[selected.kind]}
-                  </span>
-                  <span className="ml-auto font-mono text-xs text-violet-200/50">
-                    {selected.date}
-                  </span>
-                </div>
-                <div className="font-serif text-2xl text-violet-50 leading-tight mb-4">
-                  {selected.title}
-                </div>
-                <div className="font-body text-violet-100/85 text-base leading-relaxed">
-                  {selected.detail}
-                </div>
-                {selected.tags && (
-                  <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-violet-400/20">
-                    {selected.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="font-mono text-xs tracking-wider text-violet-200/70 px-2 py-1 border border-violet-400/30"
-                      >
-                        {t}
-                      </span>
-                    ))}
+                    ×
+                  </button>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span
+                      className="font-serif text-3xl"
+                      style={{ color: KIND_COLORS[selected.kind] }}
+                    >
+                      {KIND_GLYPHS[selected.kind]}
+                    </span>
+                    <span
+                      className="font-serif text-xs tracking-[0.3em] uppercase"
+                      style={{ color: KIND_COLORS[selected.kind] }}
+                    >
+                      {KIND_LABELS[selected.kind]}
+                    </span>
+                    <span className="ml-auto font-mono text-xs text-violet-200/50">
+                      {selected.date}
+                    </span>
                   </div>
-                )}
+                  <div className="font-serif text-2xl text-violet-50 leading-tight">
+                    {selected.title}
+                  </div>
+                </div>
+
+                {/* Corps scrollable */}
+                <div className="px-9 py-6 overflow-y-auto flex-1">
+                  <div className="font-body text-violet-100/85 text-base leading-relaxed">
+                    {selected.detail}
+                  </div>
+
+                  {/* ═══ RAPPORT DÉTAILLÉ — uniquement pour les missions ═══ */}
+                  {selected.report && (
+                    <div className="mt-7">
+                      <div className="font-serif text-xs tracking-[0.3em] text-violet-200/70 mb-4">
+                        RAPPORT DU RELAIS · {selected.report.totalSeconds}s
+                      </div>
+                      <div className="space-y-2.5">
+                        {selected.report.stages.map((s, i) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-3 py-2.5 px-3 bg-black/30 border-l-2 border-violet-400/40 rounded-sm"
+                          >
+                            <div className="flex flex-col items-center justify-center min-w-[34px] pt-0.5">
+                              <span className="font-serif text-[10px] tracking-widest text-violet-200/40">
+                                {String(i + 1).padStart(2, '0')}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="font-serif text-violet-50 text-base tracking-wide">
+                                  {s.godName}
+                                </span>
+                                <span className="font-mono text-[11px] text-violet-200/60 tabular-nums whitespace-nowrap">
+                                  {s.durationSeconds}s
+                                </span>
+                              </div>
+                              <div className="font-body italic text-violet-100/70 text-sm mt-0.5">
+                                {s.action}
+                              </div>
+                              {s.wasBlocked && s.blockReason && (
+                                <div className="mt-2 p-2 bg-red-950/40 border-l-2 border-red-400/60 font-body text-red-200/85 text-[13px]">
+                                  ⚠ Athéna a bloqué : « {s.blockReason} »
+                                  <div className="text-red-300/60 text-[11px] mt-0.5">
+                                    Débloqué par Julien — la mission a pu continuer.
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Conclusion */}
+                      <div className="mt-5 p-4 bg-violet-900/25 border border-violet-400/30 rounded-sm">
+                        <div className="font-serif text-[10px] tracking-[0.3em] text-violet-200/60 mb-1.5">
+                          CONCLUSION DE PANDORE
+                        </div>
+                        <div className="font-body italic text-violet-100/90 text-sm leading-relaxed">
+                          « {selected.report.summary} »
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selected.tags && (
+                    <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-violet-400/20">
+                      {selected.tags.map((t) => (
+                        <span
+                          key={t}
+                          className="font-mono text-xs tracking-wider text-violet-200/70 px-2 py-1 border border-violet-400/30"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </>

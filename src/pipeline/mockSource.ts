@@ -294,6 +294,11 @@ export function createMockPipelineSource(): PipelineSource {
       const stages = mission.stages.map((s) => ({ ...s }));
       const cur = stages[mission.currentStageIndex];
       if (!cur) return;
+      // On garde la trace historique du blocage avant de le retirer
+      const formerReason = (cur as MissionStage & { blockReason?: string }).blockReason;
+      if (formerReason && !cur.blockHistory) {
+        cur.blockHistory = formerReason;
+      }
       cur.status = 'active';
       (cur as MissionStage & { blockReason?: string }).blockReason = undefined;
 

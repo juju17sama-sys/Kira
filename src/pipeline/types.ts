@@ -31,6 +31,8 @@ export interface MissionStage {
   status: 'pending' | 'active' | 'done' | 'blocked';
   startedAt?: string;
   finishedAt?: string;
+  /** Si l'étape a été bloquée à un moment, on garde la raison historique */
+  blockHistory?: string;
 }
 
 /** Une mission de bout en bout (un clip de A à Z) */

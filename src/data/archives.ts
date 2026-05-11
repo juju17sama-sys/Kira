@@ -15,6 +15,26 @@ export interface ArchiveEntry {
   detail: string;
   // Tags pour la recherche
   tags?: string[];
+  // Rapport détaillé optionnel — utilisé par les missions archivées
+  // (liste de lignes "dieu — action — durée"), affichage spécifique en modal.
+  report?: ArchiveReport;
+}
+
+export interface ArchiveReport {
+  /** Durée totale du relais en secondes */
+  totalSeconds: number;
+  /** Une ligne par stage, dans l'ordre */
+  stages: {
+    godId: string;
+    godName: string;
+    action: string;
+    durationSeconds: number;
+    /** S'il y a eu un blocage qui a été résolu */
+    wasBlocked?: boolean;
+    blockReason?: string;
+  }[];
+  /** Conclusion auto-générée */
+  summary: string;
 }
 
 export const ARCHIVES: ArchiveEntry[] = [
