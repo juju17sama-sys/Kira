@@ -134,7 +134,7 @@ export function PandoreVault({ onBack }: Props) {
         transition={{ delay: 0.4, duration: 0.7 }}
         className="absolute top-8 left-1/2 -translate-x-1/2 text-center pointer-events-none z-20"
       >
-        <div className="font-serif text-5xl tracking-[0.3em] text-violet-100 drop-shadow-[0_0_20px_rgba(168,85,247,0.8)]">
+        <div className="font-serif text-3xl sm:text-5xl tracking-[0.2em] sm:tracking-[0.3em] text-violet-100 drop-shadow-[0_0_20px_rgba(168,85,247,0.8)] px-4">
           BOÎTE DE PANDORE
         </div>
         <div className="font-body italic text-violet-200/80 text-sm mt-2 tracking-widest">
@@ -147,7 +147,7 @@ export function PandoreVault({ onBack }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.5 }}
-        className="absolute top-32 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20"
+        className="absolute top-32 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 z-20 max-w-[92vw] px-2"
       >
         <FilterChip
           label="Tout"

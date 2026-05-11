@@ -90,7 +90,7 @@ export function CronosCommandRoom({ onBack }: Props) {
         transition={{ delay: 0.3, duration: 0.7 }}
         className="absolute top-8 left-1/2 -translate-x-1/2 text-center pointer-events-none z-20"
       >
-        <div className="font-serif text-5xl tracking-[0.3em] text-amber-100 drop-shadow-[0_0_20px_rgba(217,179,86,0.7)]">
+        <div className="font-serif text-3xl sm:text-5xl tracking-[0.2em] sm:tracking-[0.3em] text-amber-100 drop-shadow-[0_0_20px_rgba(217,179,86,0.7)] px-4">
           SALLE DU COMMANDEMENT
         </div>
         <div className="font-body italic text-amber-200/80 text-sm mt-2 tracking-widest">
@@ -103,12 +103,12 @@ export function CronosCommandRoom({ onBack }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
-        className="absolute top-32 left-1/2 -translate-x-1/2 flex items-center gap-8 z-20"
+        className="absolute top-32 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-4 sm:gap-8 z-20 max-w-[92vw]"
       >
         <Stat label="MISSIONS ACTIVES" value={stats.active} />
-        <div className="w-px h-10 bg-amber-400/30" />
+        <div className="hidden sm:block w-px h-10 bg-amber-400/30" />
         <Stat label="MISSIONS ARCHIVÉES" value={stats.archived} />
-        <div className="w-px h-10 bg-amber-400/30" />
+        <div className="hidden sm:block w-px h-10 bg-amber-400/30" />
         <Stat label="TOTAL JOUR" value={stats.total} />
       </motion.div>
 

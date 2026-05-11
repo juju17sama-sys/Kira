@@ -110,7 +110,7 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="absolute bottom-10 right-10 max-w-md z-20"
+        className="absolute bottom-6 right-4 sm:bottom-10 sm:right-10 max-w-[calc(100vw-2rem)] sm:max-w-md z-20"
       >
         <div className="px-7 py-5 bg-black/55 backdrop-blur-sm border border-gold/40 rounded-sm">
           <div
