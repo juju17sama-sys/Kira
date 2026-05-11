@@ -18,6 +18,8 @@ import { AmbientLayer } from './AmbientLayer';
 import { RelayFlame } from './RelayFlame';
 import { assetUrl } from '../utils/assets';
 import { sfxHover } from '../utils/sound';
+import { usePipelineState } from '../pipeline/usePipeline';
+import { activeStage } from '../pipeline/mockSource';
 
 interface Props {
   statuses?: Partial<Record<God['id'], GodStatus>>;
@@ -30,6 +32,17 @@ type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se';
 export function PanoramicHub({ statuses = {}, onSelect }: Props) {
   const [hovered, setHovered] = useState<God | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Compteur de missions actives par dieu (pour affichage discret sur le hub)
+  const pipeline = usePipelineState();
+  const missionsByGod = (() => {
+    const counts: Partial<Record<GodId, number>> = {};
+    for (const m of pipeline.missions) {
+      const cur = activeStage(m);
+      if (cur) counts[cur.godId] = (counts[cur.godId] ?? 0) + 1;
+    }
+    return counts;
+  })();
 
   // ═══ Mode debug + edition ═══
   const [debug, setDebug] = useState(
@@ -263,6 +276,22 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2">
                   <AlertGlyph />
                 </div>
+              )}
+
+              {/* Compteur de missions actives — chiffre discret a cote du dieu */}
+              {!editing && (missionsByGod[god.id] ?? 0) > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute -top-3 -right-3 flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full font-serif text-[11px] font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,0,0,0.6)] pointer-events-none"
+                  style={{
+                    background: god.palette.flame,
+                    color: '#1a140c',
+                    boxShadow: `0 0 12px ${god.palette.flame}`,
+                  }}
+                >
+                  {missionsByGod[god.id]}
+                </motion.div>
               )}
 
               {/* Indicateur travaille */}
