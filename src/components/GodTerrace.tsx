@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import type { God } from '../data/gods';
 import { AmbientLayer } from './AmbientLayer';
+import { GodDialog } from './GodDialog';
 import { assetUrl } from '../utils/assets';
 
 interface Props {
@@ -114,46 +115,28 @@ export function GodTerrace({ god, onBack, onOpenPanel }: Props) {
         </div>
       </button>
 
-      {/* ═══ Cartouche d'identite — bas droite ═══ */}
+      {/* ═══ Dialogue interactif avec le dieu — bas droite ═══ */}
+      {/* Vrai chat : Julien peut parler, le dieu repond en personnage.   */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
-        className="absolute bottom-6 right-4 sm:bottom-10 sm:right-10 max-w-[calc(100vw-2rem)] sm:max-w-md z-20"
+        transition={{ delay: 0.7, duration: 0.6 }}
+        className="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 z-20"
       >
-        <div className="px-7 py-5 bg-black/55 backdrop-blur-sm border border-gold/40 rounded-sm">
-          <div
-            className="font-serif text-3xl tracking-[0.25em]"
-            style={{ color: god.palette.accent }}
-          >
-            {god.name.toUpperCase()}
-          </div>
-          <div className="font-body italic text-marble/85 text-base mt-1">
-            {god.title}
-          </div>
-          <div className="font-body text-gold/70 text-sm mt-2 tracking-wider">
-            {god.role}
-          </div>
-          <button
-            onClick={onOpenPanel}
-            className="mt-4 px-5 py-2 border border-gold/60 hover:border-gold-light hover:bg-gold/10 transition-colors font-serif text-xs tracking-[0.3em] text-gold-light"
-          >
-            CONSULTER
-          </button>
-        </div>
+        <GodDialog god={god} />
       </motion.div>
 
-      {/* ═══ Indication discrete d'interactivite ═══ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none z-20"
+      {/* Bouton CONSULTER LE PARCHEMIN — discret, sous le bouton son */}
+      <motion.button
+        onClick={onOpenPanel}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9, duration: 0.5 }}
+        className="absolute top-20 right-6 px-5 py-2 bg-black/45 backdrop-blur-sm border border-gold/40 hover:border-gold-light/80 transition-colors font-serif text-xs tracking-[0.3em] text-gold-light z-20"
       >
-        <div className="font-body italic text-marble/40 text-xs tracking-widest">
-          — adressez-vous au dieu —
-        </div>
-      </motion.div>
+        📜 CONSULTER LE PARCHEMIN
+      </motion.button>
+
     </div>
   );
 }
