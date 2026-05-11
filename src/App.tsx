@@ -17,6 +17,7 @@ import { CronosCommandRoom } from './components/CronosCommandRoom';
 import { ScrollPanel } from './components/ScrollPanel';
 import { SoundToggle } from './components/SoundToggle';
 import { NotificationCenter } from './components/NotificationCenter';
+import { preloadGodPortraits } from './utils/preload';
 import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
 import { usePipelineState } from './pipeline/usePipeline';
 import type { God } from './data/gods';
@@ -43,10 +44,15 @@ export default function App() {
     };
     window.addEventListener('click', onFirstInteraction);
     window.addEventListener('keydown', onFirstInteraction);
+
+    // Préchargement des portraits en arrière-plan, après que le hub soit affiché
+    const preloadTimer = setTimeout(preloadGodPortraits, 1500);
+
     return () => {
       stopWind();
       window.removeEventListener('click', onFirstInteraction);
       window.removeEventListener('keydown', onFirstInteraction);
+      clearTimeout(preloadTimer);
     };
   }, []);
 
