@@ -18,55 +18,153 @@ Chaque dieu a sa terrasse, son symbole, sa palette, sa flamme. Le décor **est**
 
 ---
 
-## Architecture des scènes
+## Le panthéon
 
-| Niveau | Vue | Contenu |
-|---|---|---|
-| 1 | **Hub panoramique** | Vue aérienne du Mont. Survol = halo doré + nom. Clic = zoom vers terrasse. |
-| 2 | **Terrasse du dieu** | Plein écran, dieu plein corps. Cartouche d'identité bas-droite. |
-| 3 | **Parchemin d'action** | Slide depuis le bas, esthétique parchemin. Tâches, actions, archives. |
-
-### Signalétique d'alerte
-- **Triangle doré** discret au-dessus d'un dieu = il a besoin de Julien.
-- **Flamme qui pulse** au sol = il travaille.
-- **Pas d'aura colorée**, pas de badge rouge agressif.
+| Dieu | Domaine | Rôle pipeline | Palette | Flamme |
+|---|---|---|---|---|
+| **Cronos** | Maître du Temps | Superviseur, chef d'orchestre | Or sépia | Violette |
+| **Zeus** | Roi des Dieux | Tendances, stratégie | Bleu royal / or | Bleue électrique |
+| **Poséidon** | Maître des Océans | Montage vidéo, flow | Bleu océan | Bleue aquatique |
+| **Hadès** | Roi des Enfers | Analyse gameplay (replays) | Violet sombre | Violette intense |
+| **Apollon** | Soleil et Arts | Audio, rythme, BGM | Or éclatant | Dorée chaude |
+| **Aphrodite** | Amour et Beauté | Miniatures, visuels | Rose | Rose |
+| **Athéna** | Sagesse et Stratégie | Contrôle qualité | Violet / or | Violette |
+| **Hermès** | Messager | Copywriting, hooks | Or solaire | Dorée |
+| **Boîte de Pandore** | Archives | Mémoire projet | Violet électrique | Violette crépitante |
 
 ---
 
-## Stack
+## Les 3 scènes
+
+```
+                   ┌─────────────────────┐
+                   │   HUB PANORAMIQUE   │
+                   │   (Mont Olympe)     │◄─── Page d'accueil
+                   └──┬──┬──┬───────────┘
+                      │  │  │
+       ┌──────────────┘  │  └──────────────┐
+       │                 │                 │
+       ▼                 ▼                 ▼
+┌─────────────┐  ┌──────────────┐  ┌──────────────┐
+│  TERRASSE   │  │  SALLE DU    │  │  BOÎTE DE    │
+│  (8 dieux)  │  │  COMMANDEMENT│  │  PANDORE     │
+│             │  │  (Cronos)    │  │  (archives)  │
+└──────┬──────┘  └──────────────┘  └──────────────┘
+       │
+       ▼
+┌─────────────┐
+│  PARCHEMIN  │  Action contextuelle :
+│  (action)   │  INVOQUER, débloquer, consulter
+└─────────────┘
+```
+
+### 1. Hub panoramique
+Vue aérienne fullscreen du Mont Olympe. Les 9 dieux sont à leurs positions canoniques.
+- **Survol** : halo doré + son de hover
+- **Clic** : zoom cinématique vers la scène du dieu
+- **Compteur** : un rond coloré apparaît à côté du dieu quand des missions actives sont chez lui
+- **Flammes de relais** : étincelles dorées qui voyagent entre les dieux quand une mission progresse
+
+### 2. Terrasses individuelles (8 dieux)
+- Plein écran, parallax souris, respiration de scène
+- Clic sur le dieu → parchemin d'action contextuel
+- Bouton retour discret en haut à gauche
+
+### 3. Salle du Commandement (Cronos)
+- Stats globales (missions actives / archivées / total)
+- Bouton **⟁ INVOQUER UNE NOUVELLE MISSION** rapide
+- Timeline visuelle des missions actives : 9 segments par mission, couleur de chaque dieu, flamme pulsante sur le stage actif
+
+### 4. Boîte de Pandore (archives)
+- Vue spéciale particules violettes amplifiées
+- Filtres : Tout / Clips / Leçons / Succès / Erreurs
+- Recherche texte
+- **Archivage automatique** des missions terminées
+- Détail au clic d'un fragment
+
+---
+
+## Le système de missions en relais
+
+Quand tu cliques **INVOQUER** sur un dieu, une mission est créée et traverse les 9 dieux dans l'ordre :
+
+```
+Cronos    → orchestre          ┐
+Zeus      → identifie tendance │
+Hadès     → analyse gameplay   │
+Poséidon  → monte le clip      │  ~50 secondes
+Apollon   → ajoute le son      │  en démo
+Aphrodite → fait la miniature  │
+Hermès    → écrit le hook      │
+Athéna    → valide qualité     │ ⚠ peut bloquer (1/3)
+Pandore   → archive            ┘
+```
+
+À chaque transition :
+- 🔥 **Flamme dorée** voyage de l'ancien au nouveau dieu
+- 💫 Le dieu actif passe en `working` (flamme + aura colorée)
+- 📊 Sa barre de progression avance
+
+### Athéna peut bloquer une mission
+Avec 1 chance sur 3, Athéna trouve un défaut (durée, miniature, hook, hashtag, faute…) et **bloque la mission**.
+- Notification rouge "⚠ MISSION BLOQUÉE" en haut
+- Aller dans le parchemin Athéna → bouton **⟁ DÉBLOQUER ET POURSUIVRE**
+
+---
+
+## Stack technique
 
 - **Vite** + **React 19** + **TypeScript**
-- **Tailwind CSS 3** (palette divine custom)
-- **Framer Motion** (transitions immersives)
+- **Tailwind CSS 3** (palette custom marbre / or / violet sacré)
+- **Framer Motion** (transitions, dolly-zoom, particules)
+- **Web Audio API** (sons procéduraux — vent, harpe, tintements)
 - Typographie : **Cinzel** (titres) + **Cormorant Garamond** (corps)
+- Images : **WebP** (carte panoramique + 9 portraits, ~5 MB total)
 
 ---
 
-## Structure
+## Architecture du code
 
 ```
 src/
-├── App.tsx                    Orchestrateur de scènes (hub <-> terrasse)
+├── App.tsx                          Orchestrateur de scènes
 ├── data/
-│   └── gods.ts                Configuration des 9 dieux (palette, hotspots, rôles)
+│   ├── gods.ts                      Config des 9 dieux (palette, hotspot, rôle)
+│   └── archives.ts                  Archives statiques de démo
+├── pipeline/                        ─── Pont avec le pipeline réel ───
+│   ├── types.ts                     Mission, MissionStage, PipelineState
+│   ├── mockSource.ts                Source simulée (mission relais + Athéna)
+│   └── usePipeline.ts               Hooks React + actions invoke/unblock
 ├── components/
-│   ├── PanoramicHub.tsx       Vue 1 — carte panoramique
-│   ├── GodTerrace.tsx         Vue 2 — terrasse du dieu sélectionné
-│   ├── ScrollPanel.tsx        Vue 3 — parchemin d'action
-│   └── AlertGlyph.tsx         Triangle d'alerte doré
-└── index.css                  Reset + import polices
+│   ├── PanoramicHub.tsx             Vue 1 — carte fullscreen + éditeur hotspots
+│   ├── GodTerrace.tsx               Vue 2 — terrasse d'un dieu (parallax + respiration)
+│   ├── CronosCommandRoom.tsx        Vue 3a — salle de commandement Cronos
+│   ├── PandoreVault.tsx             Vue 3b — archives Pandore (filtres + recherche)
+│   ├── ScrollPanel.tsx              Parchemin contextuel (tâches + missions + actions)
+│   ├── AmbientLayer.tsx             Étincelles dorées + brume basse + rayons
+│   ├── RelayFlame.tsx               Flamme qui voyage entre dieux à chaque transition
+│   ├── NotificationCenter.tsx       Étoiles filantes ✦ done / ⚠ blocked
+│   ├── SoundToggle.tsx              Bouton mute/unmute coin haut-droit
+│   └── AlertGlyph.tsx               Triangle doré pulsant
+└── utils/
+    ├── assets.ts                    Helper BASE_URL (compatible GitHub Pages)
+    ├── preload.ts                   Préchargement portraits en arrière-plan
+    └── sound.ts                     Sons procéduraux Web Audio
 public/olympe/
-├── mont-olympe.png            Carte aérienne du panthéon
-├── cronos.png                 Terrasses individuelles
-├── zeus.png
-├── poseidon.png
-├── hades.png
-├── apollon.png
-├── aphrodite.png
-├── athena.png
-├── hermes.png
-└── pandore.png                Boîte de Pandore (archives)
+├── mont-olympe.webp                 Carte aérienne du panthéon
+├── cronos.webp ... pandore.webp     9 portraits chibi plein corps
 ```
+
+---
+
+## Modes développeur
+
+| Touche | Effet |
+|---|---|
+| **D** | Active/désactive l'affichage debug des hotspots (rectangles dorés avec coordonnées) |
+| **E** | Active l'éditeur visuel des hotspots (drag & resize + bouton COPIER LE CODE) |
+
+URL : `?debug` ou `?edit` pour activer dès l'arrivée.
 
 ---
 
@@ -74,32 +172,60 @@ public/olympe/
 
 ```bash
 npm install
-npm run dev
+npm run dev          # serveur local + accès réseau (utile depuis téléphone)
 ```
 
-Puis ouvrir <http://localhost:5173>.
+→ <http://localhost:5173/>
+
+## Déployer
+
+Le repo a un workflow GitHub Actions (`.github/workflows/deploy.yml`) qui :
+1. Build à chaque push sur `main`
+2. Publie sur GitHub Pages : <https://juju17sama-sys.github.io/Kira/>
+
+Prérequis : repo public + Settings → Pages → Source : **GitHub Actions**.
 
 ---
 
-## Calibration des hotspots
+## Brancher le vrai pipeline Viral AI Studio
 
-Les positions cliquables des dieux sur la carte panoramique sont définies dans `src/data/gods.ts`, propriété `hotspot: { x, y, w, h }` (en pourcentage de l'image).
+Aujourd'hui, le pipeline est **mocké** dans `src/pipeline/mockSource.ts` :
+- statuts simulés
+- missions virtuelles qui avancent par timers
+- Athéna bloque 1/3 du temps avec raison aléatoire
 
-Valeurs actuelles = **estimation initiale**. Une fois la première version lancée, elles seront ajustées finement à la souris pour coller pixel-près à chaque dieu.
+Pour brancher le vrai backend, il suffira de :
+1. Créer `src/pipeline/apiSource.ts` qui implémente `PipelineSource`
+2. Remplacer `createMockPipelineSource` par `createApiPipelineSource` dans `usePipeline.ts`
+3. Le reste de l'app reste **strictement inchangé** (couplage faible voulu)
 
 ---
 
-## Roadmap immersive
+## Roadmap
 
-- [x] Étape 1 — Hub panoramique fullscreen avec zones cliquables
-- [x] Étape 2 — Transition vers terrasse individuelle
-- [x] Étape 3 — Panneau parchemin contextuel
-- [x] Étape 4 — Glyphes d'alerte (triangles dorés)
-- [ ] Étape 5 — Connexion au pipeline réel (Viral AI Studio)
-- [ ] Étape 6 — Vue spéciale Boîte de Pandore (archives interactives)
-- [ ] Étape 7 — Animations idle (respiration, capes, flammes)
-- [ ] Étape 8 — Sons d'ambiance (vent, harpe, tonnerre)
-- [ ] Étape 9 — Parallax léger sur la carte panoramique
+- [x] Hub panoramique calibré (9 hotspots)
+- [x] Terrasses individuelles + parallax + respiration
+- [x] Parchemins contextuels (parchemin de marbre)
+- [x] Vue Boîte de Pandore (archives)
+- [x] Vue Cronos (salle du commandement)
+- [x] Système de missions en relais (9 stages)
+- [x] Flamme dorée qui voyage entre dieux
+- [x] Athéna intervention aléatoire + déblocage manuel
+- [x] Notifications "étoile filante" (done / blocked)
+- [x] Sons procéduraux (vent, hover, harpe, chime)
+- [x] Bouton mute persistant
+- [x] Persistance pipeline en localStorage
+- [x] Préchargement des images
+- [x] Conversion WebP (-85% de poids)
+- [x] Dolly-zoom cinématique à l'entrée des scènes
+- [x] Compteurs de missions sur les hotspots du hub
+- [x] Responsive de base
+- [x] Mode debug (D) + éditeur hotspots (E)
+- [ ] Connexion au pipeline réel Viral AI Studio
+- [ ] Vraie 3D (quand GLB disponible)
+- [ ] Animations idle des dieux dans les terrasses
+- [ ] Salle Zeus (vue tendances/stratégie)
+- [ ] Salle Hadès (analyse replay interactive)
 
 ---
 
