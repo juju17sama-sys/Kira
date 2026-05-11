@@ -226,7 +226,9 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/10 via-transparent to-black/40" />
 
       {/* ═══ Hotspots ═══ */}
-      {GODS.map((god) => {
+      {/* Les dieux marques "hidden" (Pandore) ne sont PAS affiches sur le hub.
+         Ils restent accessibles via leurs propres boutons (ARCHIVES). */}
+      {GODS.filter((g) => !g.hidden).map((god) => {
         const status = statuses[god.id] ?? god.defaultStatus;
         const isHovered = hovered?.id === god.id;
         const h = getHotspot(god);

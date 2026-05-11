@@ -19,6 +19,7 @@ import { SoundToggle } from './components/SoundToggle';
 import { NotificationCenter } from './components/NotificationCenter';
 import { GoldenRain } from './components/GoldenRain';
 import { Welcome } from './components/Welcome';
+import { ArchivesButton } from './components/ArchivesButton';
 import { preloadGodPortraits } from './utils/preload';
 import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
 import { usePipelineState } from './pipeline/usePipeline';
@@ -135,6 +136,11 @@ export default function App() {
       <NotificationCenter />
       <GoldenRain />
       <Welcome />
+
+      {/* Bouton ARCHIVES (Pandore) — visible uniquement sur le hub */}
+      {scene.kind === 'hub' && (
+        <ArchivesButton onClick={() => setScene({ kind: 'vault' })} />
+      )}
     </div>
   );
 }
