@@ -17,7 +17,6 @@ import { CronosCommandRoom } from './components/CronosCommandRoom';
 import { ScrollPanel } from './components/ScrollPanel';
 import { SoundToggle } from './components/SoundToggle';
 import { NotificationCenter } from './components/NotificationCenter';
-import { GoldenRain } from './components/GoldenRain';
 import { Welcome } from './components/Welcome';
 import { ArchivesButton } from './components/ArchivesButton';
 import { preloadGodPortraits } from './utils/preload';
@@ -37,6 +36,23 @@ export default function App() {
 
   // État vivant du pipeline — mocké pour l'instant, vrai backend plus tard
   const pipeline = usePipelineState();
+
+  // ═══ Mode Ragnarök : bascule du décor (touche K) ═══
+  // Persistant en sessionStorage pour ne pas se réinitialiser au refresh dev.
+  const [ragnarok, setRagnarok] = useState(() => {
+    try {
+      return sessionStorage.getItem('kira:ragnarok') === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('kira:ragnarok', ragnarok ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [ragnarok]);
 
   // Démarrage du vent ambiant au 1er clic utilisateur (politique autoplay).
   useEffect(() => {
@@ -59,8 +75,7 @@ export default function App() {
     };
   }, []);
 
-  // Navigation clavier : touches 1-9 = aller direct au dieu correspondant
-  // (ordre canonique du panthéon)
+  // Navigation clavier : 1-9 dieux, K bascule Ragnarok, Esc retour hub
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -69,24 +84,29 @@ export default function App() {
         e.target instanceof HTMLTextAreaElement
       )
         return;
+
+      // Touche K : bascule du mode Ragnarok
+      if (e.key.toLowerCase() === 'k') {
+        setRagnarok((v) => !v);
+        return;
+      }
+
+      // Echap : retour au hub
+      if (e.key === 'Escape') {
+        backToHub();
+        return;
+      }
+
+      // 1-9 : acces direct au dieu correspondant
       const num = parseInt(e.key, 10);
       if (Number.isNaN(num) || num < 1 || num > 9) return;
-      // Import dynamique pour eviter le cycle
       import('./data/gods').then(({ GODS }) => {
         const god = GODS[num - 1];
         if (god) enterGod(god);
       });
-      // Touche '0' ou 'Échap' → retour hub
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') backToHub();
     };
     window.addEventListener('keydown', onKey);
-    window.addEventListener('keydown', onEsc);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('keydown', onEsc);
-    };
+    return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -113,6 +133,7 @@ export default function App() {
             key="hub"
             statuses={pipeline.godStatuses}
             onSelect={enterGod}
+            ragnarokMode={ragnarok}
           />
         )}
         {scene.kind === 'terrace' && (
@@ -134,7 +155,6 @@ export default function App() {
       <ScrollPanel god={panelGod} onClose={() => setPanelGod(null)} />
       <SoundToggle />
       <NotificationCenter />
-      <GoldenRain />
       <Welcome />
 
       {/* Bouton ARCHIVES (Pandore) — visible uniquement sur le hub */}

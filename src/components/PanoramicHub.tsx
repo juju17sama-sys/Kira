@@ -24,12 +24,14 @@ import { activeStage } from '../pipeline/mockSource';
 interface Props {
   statuses?: Partial<Record<God['id'], GodStatus>>;
   onSelect: (god: God) => void;
+  /** Si true, on affiche la carte "mode Ragnarok" au lieu de la carte normale */
+  ragnarokMode?: boolean;
 }
 
 type Hotspot = { x: number; y: number; w: number; h: number };
 type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se';
 
-export function PanoramicHub({ statuses = {}, onSelect }: Props) {
+export function PanoramicHub({ statuses = {}, onSelect, ragnarokMode = false }: Props) {
   const [hovered, setHovered] = useState<God | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -204,14 +206,28 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.4, ease: 'easeOut' }}
       >
+        {/* Cross-fade entre carte normale et mode Ragnarok via 2 images empilees */}
         <motion.img
-          src={assetUrl('olympe/mont-olympe.webp')}
-          alt="Mont Olympe"
+          key={ragnarokMode ? 'ragnarok' : 'normal'}
+          src={assetUrl(ragnarokMode ? 'olympe/ragnarok-mode.webp' : 'olympe/mont-olympe.webp')}
+          alt={ragnarokMode ? 'Mont Olympe — Mode Ragnarök' : 'Mont Olympe'}
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           draggable={false}
-          animate={editing ? undefined : { scale: [1, 1.006, 1], y: [0, -2, 0] }}
+          initial={{ opacity: 0 }}
+          animate={
+            editing
+              ? { opacity: 1 }
+              : { opacity: 1, scale: [1, 1.006, 1], y: [0, -2, 0] }
+          }
           transition={
-            editing ? undefined : { duration: 8, ease: 'easeInOut', repeat: Infinity }
+            editing
+              ? { opacity: { duration: 0.8 } }
+              : {
+                  opacity: { duration: 0.8 },
+                  duration: 8,
+                  ease: 'easeInOut',
+                  repeat: Infinity,
+                }
           }
         />
       </motion.div>
@@ -383,6 +399,21 @@ export function PanoramicHub({ statuses = {}, onSelect }: Props) {
             QUITTER (E)
           </button>
         </div>
+      )}
+
+      {/* ═══ Indicateur Mode Ragnarok actif ═══ */}
+      {ragnarokMode && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+        >
+          <div className="px-5 py-2 bg-black/70 border-2 border-red-500/70 rounded-sm shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+            <div className="font-serif text-xs tracking-[0.4em] text-red-400">
+              ⚔ MODE RAGNARÖK ⚔
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* ═══ Indicateur mode debug ═══ */}
