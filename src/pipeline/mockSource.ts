@@ -70,6 +70,45 @@ function makeInitialState(): PipelineState {
 
 let nextMissionNumber = 42;
 
+// ─── Persistance localStorage ─────────────────────────────────────────
+const STORAGE_KEY = 'kira:pipeline:v1';
+
+function loadPersistedState(): PipelineState | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PipelineState & { _nextMissionNumber?: number };
+    if (parsed._nextMissionNumber) nextMissionNumber = parsed._nextMissionNumber;
+    // On ne restaure PAS les missions en cours (les timers seraient perdus,
+    // mieux vaut un état propre). Seules les archives sont persistées.
+    return {
+      godStatuses: parsed.godStatuses ?? {},
+      tasks: parsed.tasks ?? [],
+      missions: [], // missions actives jetées (timers perdus au refresh)
+      archivedMissions: parsed.archivedMissions ?? [],
+      updatedAt: parsed.updatedAt ?? new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function persistState(state: PipelineState) {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...state,
+        _nextMissionNumber: nextMissionNumber,
+      }),
+    );
+  } catch {
+    /* quota/private — on ignore */
+  }
+}
+
 // Raisons aléatoires de blocage par Athéna — réalistes vs un pipeline TikTok
 const ATHENA_BLOCK_REASONS = [
   'Le clip dépasse la durée TikTok recommandée (1m02 vs 60s).',
@@ -80,12 +119,18 @@ const ATHENA_BLOCK_REASONS = [
 ];
 
 export function createMockPipelineSource(): PipelineSource {
-  let state = makeInitialState();
+  // Tente de restaurer depuis localStorage, sinon état initial.
+  const persisted = loadPersistedState();
+  let state: PipelineState = persisted
+    ? { ...makeInitialState(), ...persisted, missions: [] }
+    : makeInitialState();
+
   const listeners = new Set<(s: PipelineState) => void>();
   const stageTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   const emit = () => {
     state = { ...state, updatedAt: new Date().toISOString() };
+    persistState(state);
     listeners.forEach((l) => l(state));
   };
 
