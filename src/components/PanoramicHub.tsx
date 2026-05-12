@@ -232,8 +232,37 @@ export function PanoramicHub({ statuses = {}, onSelect, ragnarokMode = false }: 
         />
       </motion.div>
 
+      {/* ═══ Overlay teinte rouge sombre — uniquement en mode Ragnarok ═══ */}
+      {ragnarokMode && (
+        <>
+          {/* Layer principal multiply rouge — assombrit + teinte */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(80,0,0,0.55) 0%, rgba(20,0,0,0.85) 100%)',
+              mixBlendMode: 'multiply',
+            }}
+          />
+          {/* Voile rouge léger en screen — pour faire vibrer les ombres */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'rgba(180,30,30,0.18)',
+              mixBlendMode: 'overlay',
+            }}
+          />
+        </>
+      )}
+
       {/* ═══ Couche ambiante (desactivee en edition pour eviter les distractions) ═══ */}
-      {!editing && <AmbientLayer sparkCount={14} intensity={0.9} />}
+      {!editing && (
+        <AmbientLayer
+          sparkCount={14}
+          intensity={0.9}
+          mode={ragnarokMode ? 'ragnarok' : 'normal'}
+        />
+      )}
 
       {/* ═══ Flammes de relais — voyagent entre dieux quand mission progresse ═══ */}
       {!editing && <RelayFlame />}

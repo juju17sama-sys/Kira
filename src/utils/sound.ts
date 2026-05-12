@@ -158,6 +158,156 @@ export function stopWind() {
   windNodes = null;
 }
 
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  STORM — Mode Ragnarok : drone sombre + roulements de tonnerre   ║
+// ║                                                                  ║
+// ║  Architecture :                                                  ║
+// ║   - drone basse continue (oscillateur sine + sub) + LFO          ║
+// ║   - bruit rose low-pass tres sombre (pluie/vent enragé)          ║
+// ║   - roulements de tonnerre toutes les 12-20s (event aleatoire)   ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let stormNodes: {
+  drone: OscillatorNode;
+  sub: OscillatorNode;
+  noiseSrc: AudioBufferSourceNode;
+  filter: BiquadFilterNode;
+  gainDrone: GainNode;
+  gainNoise: GainNode;
+  lfo: OscillatorNode;
+  thunderTimer: ReturnType<typeof setTimeout>;
+} | null = null;
+
+// Roulement de tonnerre — bruit blanc, filtre passe-bas qui descend,
+// enveloppe attaque rapide + decay long (~3-4s).
+function playThunder() {
+  const c = ensureCtx();
+  if (!c || !masterGain) return;
+
+  // Bruit blanc 2s
+  const dur = 3 + Math.random() * 1.5;
+  const buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+
+  const src = c.createBufferSource();
+  src.buffer = buf;
+
+  // Filtre low-pass qui descend (donne l'impression de grondement lointain)
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(900, c.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(80, c.currentTime + dur);
+  filter.Q.value = 1.2;
+
+  // Enveloppe : attaque douce mais avec un pic, puis decay long
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0, c.currentTime);
+  gain.gain.linearRampToValueAtTime(0.32, c.currentTime + 0.15);
+  gain.gain.linearRampToValueAtTime(0.22, c.currentTime + 0.45);
+  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+
+  src.start();
+  src.stop(c.currentTime + dur + 0.1);
+}
+
+export function startStorm() {
+  const c = ensureCtx();
+  if (!c || !masterGain || stormNodes) return;
+
+  // ─ Drone basse continue : oscillateur sine 40Hz + sub 27Hz pour la masse ─
+  const drone = c.createOscillator();
+  drone.type = 'sine';
+  drone.frequency.value = 40;
+
+  const sub = c.createOscillator();
+  sub.type = 'sine';
+  sub.frequency.value = 27;
+
+  const gainDrone = c.createGain();
+  gainDrone.gain.value = 0;
+
+  drone.connect(gainDrone);
+  sub.connect(gainDrone);
+
+  // ─ Bruit rose filtré tres bas = pluie/vent sombre ─
+  const noiseSrc = c.createBufferSource();
+  noiseSrc.buffer = createNoiseBuffer(c, 4);
+  noiseSrc.loop = true;
+
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 260;
+  filter.Q.value = 0.5;
+
+  const gainNoise = c.createGain();
+  gainNoise.gain.value = 0;
+
+  // LFO sur le gain global pour respiration
+  const lfo = c.createOscillator();
+  lfo.frequency.value = 0.07;
+  const lfoGain = c.createGain();
+  lfoGain.gain.value = 0.04;
+  lfo.connect(lfoGain);
+  lfoGain.connect(gainNoise.gain);
+
+  noiseSrc.connect(filter);
+  filter.connect(gainNoise);
+
+  gainDrone.connect(masterGain);
+  gainNoise.connect(masterGain);
+
+  drone.start();
+  sub.start();
+  noiseSrc.start();
+  lfo.start();
+
+  // Fade in
+  gainDrone.gain.linearRampToValueAtTime(0.06, c.currentTime + 4);
+  gainNoise.gain.linearRampToValueAtTime(0.12, c.currentTime + 5);
+
+  // Roulements de tonnerre periodiques (toutes les 12-22s)
+  const scheduleThunder = () => {
+    const delay = (12 + Math.random() * 10) * 1000;
+    return setTimeout(() => {
+      if (!stormNodes) return;
+      playThunder();
+      const next = scheduleThunder();
+      if (stormNodes) stormNodes.thunderTimer = next;
+    }, delay);
+  };
+  const thunderTimer = scheduleThunder();
+
+  // Premier tonnerre rapide pour marquer l'entree dans le mode
+  setTimeout(playThunder, 1500);
+
+  stormNodes = { drone, sub, noiseSrc, filter, gainDrone, gainNoise, lfo, thunderTimer };
+}
+
+export function stopStorm() {
+  if (!ctx || !stormNodes) return;
+  const { drone, sub, noiseSrc, gainDrone, gainNoise, lfo, thunderTimer } = stormNodes;
+  clearTimeout(thunderTimer);
+  gainDrone.gain.cancelScheduledValues(ctx.currentTime);
+  gainNoise.gain.cancelScheduledValues(ctx.currentTime);
+  gainDrone.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+  gainNoise.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+  setTimeout(() => {
+    try {
+      drone.stop();
+      sub.stop();
+      noiseSrc.stop();
+      lfo.stop();
+    } catch {
+      /* ignore */
+    }
+  }, 1700);
+  stormNodes = null;
+}
+
 // ─── Note simple générique (pour les hover / clic) ──────────────────────
 function playNote(freq: number, duration = 0.25, type: OscillatorType = 'sine', vol = 0.18) {
   const c = ensureCtx();

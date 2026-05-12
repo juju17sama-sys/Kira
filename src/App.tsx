@@ -20,7 +20,14 @@ import { NotificationCenter } from './components/NotificationCenter';
 import { Welcome } from './components/Welcome';
 import { ArchivesButton } from './components/ArchivesButton';
 import { preloadGodPortraits } from './utils/preload';
-import { sfxBack, sfxSelect, startWind, stopWind } from './utils/sound';
+import {
+  sfxBack,
+  sfxSelect,
+  startWind,
+  stopWind,
+  startStorm,
+  stopStorm,
+} from './utils/sound';
 import { usePipelineState } from './pipeline/usePipeline';
 import type { God } from './data/gods';
 
@@ -54,10 +61,12 @@ export default function App() {
     }
   }, [ragnarok]);
 
-  // Démarrage du vent ambiant au 1er clic utilisateur (politique autoplay).
+  // Démarrage de l'ambiance sonore au 1er clic (politique autoplay).
+  // L'ambiance dépend du mode courant : vent doux ou orage du Ragnarok.
   useEffect(() => {
     const onFirstInteraction = () => {
-      startWind();
+      if (ragnarok) startStorm();
+      else startWind();
       window.removeEventListener('click', onFirstInteraction);
       window.removeEventListener('keydown', onFirstInteraction);
     };
@@ -69,11 +78,24 @@ export default function App() {
 
     return () => {
       stopWind();
+      stopStorm();
       window.removeEventListener('click', onFirstInteraction);
       window.removeEventListener('keydown', onFirstInteraction);
       clearTimeout(preloadTimer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Swap des ambiances quand on bascule le mode Ragnarok
+  useEffect(() => {
+    if (ragnarok) {
+      stopWind();
+      startStorm();
+    } else {
+      stopStorm();
+      startWind();
+    }
+  }, [ragnarok]);
 
   // Navigation clavier : 1-9 dieux, K bascule Ragnarok, Esc retour hub
   useEffect(() => {
