@@ -58,9 +58,11 @@ export function GodDialog({ god }: Props) {
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, godTyping]);
 
-  const sendMessage = () => {
-    const text = input.trim();
-    if (!text) return;
+  // Envoie un message — soit la saisie courante, soit un texte passe en argument
+  // (utilise pour les suggestions rapides).
+  const sendMessage = (forced?: string) => {
+    const text = (forced ?? input).trim();
+    if (!text || godTyping) return;
     const userMsg: Message = {
       id: Date.now(),
       from: 'user',
@@ -83,6 +85,13 @@ export function GodDialog({ god }: Props) {
       sfxChime();
     }, TYPING_DELAY + Math.random() * 400);
   };
+
+  // ─── Suggestions rapides — amorces de conversation ───
+  const QUICK_SUGGESTIONS = [
+    { label: 'Salut', payload: 'Salut' },
+    { label: 'Où en es-tu ?', payload: 'où en es-tu ?' },
+    { label: 'Aide', payload: 'aide' },
+  ];
 
   return (
     <div
@@ -191,6 +200,27 @@ export function GodDialog({ god }: Props) {
         </AnimatePresence>
       </div>
 
+      {/* Suggestions rapides — amorces de conversation */}
+      <div
+        className="px-4 pt-2 pb-1 flex flex-wrap gap-1.5 border-t"
+        style={{ borderColor: `${god.palette.primary}33` }}
+      >
+        {QUICK_SUGGESTIONS.map((s) => (
+          <button
+            key={s.label}
+            onClick={() => sendMessage(s.payload)}
+            disabled={godTyping}
+            className="px-3 py-1 font-serif text-[11px] tracking-[0.2em] border transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:bg-ink/5"
+            style={{
+              borderColor: `${god.palette.primary}66`,
+              color: god.palette.primary,
+            }}
+          >
+            {s.label.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       {/* Input bas */}
       <div
         className="px-4 py-3 border-t-2 flex items-center gap-2"
@@ -208,7 +238,7 @@ export function GodDialog({ god }: Props) {
           disabled={godTyping}
         />
         <button
-          onClick={sendMessage}
+          onClick={() => sendMessage()}
           disabled={godTyping || !input.trim()}
           className="px-4 py-2 font-serif text-xs tracking-[0.25em] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           style={{
