@@ -9,7 +9,7 @@ from moviepy.video.VideoClip import VideoClip
 import os
 
 INPUT_PATH = "/root/.claude/uploads/27d3d8f4-8980-4def-a438-2f78f46db57f/e7e2a98c-1000026157.png"
-OUTPUT_PATH = "/home/user/Kira/animated_output.mp4"
+OUTPUT_PATH = "/home/user/Kira/animated_compat.mp4"
 DURATION = 5.0
 FPS = 30
 
@@ -82,8 +82,12 @@ def make_ken_burns_frame(img_array, t):
 def main():
     print("Loading image...")
     img = Image.open(INPUT_PATH).convert("RGB")
+    # yuv420p requires even dimensions
+    w = img.width if img.width % 2 == 0 else img.width - 1
+    h = img.height if img.height % 2 == 0 else img.height - 1
+    img = img.resize((w, h), Image.LANCZOS)
     img_array = np.array(img)
-    print(f"Image size: {img.width}x{img.height}")
+    print(f"Image size: {w}x{h}")
 
     print("Creating animation...")
     clip = VideoClip(
@@ -97,7 +101,8 @@ def main():
         fps=FPS,
         codec="libx264",
         audio=False,
-        logger="bar"
+        logger="bar",
+        ffmpeg_params=["-pix_fmt", "yuv420p", "-movflags", "+faststart", "-crf", "20"]
     )
 
     size_mb = os.path.getsize(OUTPUT_PATH) / 1024 / 1024
